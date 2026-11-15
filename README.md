@@ -1,8 +1,10 @@
 # 🌿 CareCircle — Smart, Interconnected Elderly Healthcare Ecosystem
 
 > **Catalyst Hackathon Submission**  
-> *Transforming senior care from fragmented reminders into an interconnected, dignified, and clinical-grade circle of support.*
+> *Transforming senior care from fragmented reminders into an interconnected, dignified, and clinical-grade circle of support.*  
+> 🌐 **Live Production App:** [https://carecircle.antideploy.app](https://carecircle.antideploy.app)
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-carecircle.antideploy.app-588258)](https://carecircle.antideploy.app)
 [![Next.js 14](https://img.shields.io/badge/Next.js-14.2%20App%20Router-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
