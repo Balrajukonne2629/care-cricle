@@ -405,6 +405,35 @@ export const INITIAL_VITALS: VitalSign[] = [
     status: 'normal',
     loggedBy: 'Sister Kavitha, ANM',
   },
+  {
+    id: 'vital-spo2-1',
+    type: 'oxygen_saturation',
+    value: '98',
+    unit: '%',
+    measuredAt: 'Today at 08:15 AM',
+    status: 'normal',
+    loggedBy: 'Sister Kavitha, ANM',
+    note: 'Optimal room air saturation on fingertip oximeter.',
+  },
+  {
+    id: 'vital-wt-1',
+    type: 'weight',
+    value: '62.5',
+    unit: 'kg',
+    measuredAt: 'Yesterday at 07:00 AM',
+    status: 'normal',
+    loggedBy: 'Rajesh Kumar (Son)',
+    note: 'Stable baseline weight (BMI 23.4). No fluid retention detected.',
+  },
+  {
+    id: 'vital-temp-1',
+    type: 'temperature',
+    value: '98.4',
+    unit: '°F',
+    measuredAt: 'Today at 08:15 AM',
+    status: 'normal',
+    loggedBy: 'Sister Kavitha, ANM',
+  },
 ];
 
 export const INITIAL_ACTIVITY_FEED: ActivityFeedItem[] = [

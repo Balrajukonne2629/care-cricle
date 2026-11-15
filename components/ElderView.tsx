@@ -6,24 +6,23 @@ import {
   CheckCircle2,
   Volume2,
   Clock,
-  AlertCircle,
   ShieldAlert,
   Mic,
   Calendar,
-  Heart,
-  Droplets,
   Utensils,
   Sun,
   Sunset,
   Moon,
-  ChevronRight,
   Eye,
   Activity,
+  Heart,
   Check,
   Flame,
   Stethoscope,
   HeartPulse,
-  UserCheck,
+  Scale,
+  Thermometer,
+  Percent,
 } from 'lucide-react';
 import { Medication, ElderProfile, VitalSign, NativeLanguage } from '@/lib/types';
 import { SpeechService } from '@/lib/speechService';
@@ -77,9 +76,9 @@ export default function ElderView({
 
   // Text scaling classes
   const textTitleClass =
-    fontSize === 'extra-large' ? 'text-3xl sm:text-4xl' : fontSize === 'large' ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl';
+    fontSize === 'extra-large' ? 'text-2xl sm:text-3xl lg:text-4xl' : fontSize === 'large' ? 'text-xl sm:text-2xl lg:text-3xl' : 'text-lg sm:text-xl lg:text-2xl';
   const textBodyClass =
-    fontSize === 'extra-large' ? 'text-xl' : fontSize === 'large' ? 'text-lg' : 'text-base';
+    fontSize === 'extra-large' ? 'text-lg sm:text-xl' : fontSize === 'large' ? 'text-base sm:text-lg' : 'text-sm sm:text-base';
 
   // Comprehensive localized UI text dictionary for ALL languages
   const uiText: Record<
@@ -90,6 +89,8 @@ export default function ElderView({
       speakBtn: string;
       readAllBtn: string;
       readingBtn: string;
+      metricsTitle: string;
+      metricsSub: string;
       wellbeingQuestion: string;
       wellbeingUpdated: string;
       routineTitle: string;
@@ -106,6 +107,14 @@ export default function ElderView({
       sosBtn: string;
       slots: Record<string, { label: string; time: string }>;
       moods: { id: string; label: string; sub: string }[];
+      metricsLabels: {
+        bp: string;
+        sugar: string;
+        pulse: string;
+        spo2: string;
+        weight: string;
+        adherence: string;
+      };
     }
   > = {
     hi: {
@@ -114,9 +123,11 @@ export default function ElderView({
       speakBtn: 'माइक दबाकर बोलें',
       readAllBtn: 'पूरी दिनचर्या सुनें',
       readingBtn: 'सुना रहे हैं...',
+      metricsTitle: 'दैनिक स्वास्थ्य सूचकांक (Clinical Vitals)',
+      metricsSub: 'अपोलो होमकेयर और ग्लूकोमीटर द्वारा सत्यापित टेलीमेट्री',
       wellbeingQuestion: 'अम्मा, आप अभी कैसा महसूस कर रही हैं?',
       wellbeingUpdated: 'राजेश को सूचना भेज दी गई है',
-      routineTitle: 'आज की दवाइयां (Daily Schedule)',
+      routineTitle: 'आज की दवाइयां (Daily Routine)',
       listenBtn: 'दवा सुनो',
       speakingBtn: 'सुना रहे हैं...',
       markTakenBtn: 'मैंने दवा ले ली',
@@ -140,6 +151,14 @@ export default function ElderView({
         { id: 'tired', label: 'थोड़ी थकान', sub: 'विश्राम की आवश्यकता' },
         { id: 'help', label: 'सहायता चाहिए', sub: 'केयरगिवर को बुलाएं' },
       ],
+      metricsLabels: {
+        bp: 'रक्तचाप (BP)',
+        sugar: 'ब्लड शुगर (Fasting)',
+        pulse: 'हृदय गति (Pulse)',
+        spo2: 'ऑक्सीजन (SpO2)',
+        weight: 'शारीरिक वजन',
+        adherence: 'दवा अनुपालन',
+      },
     },
     te: {
       greeting: `నమస్కారం, ${elder.preferredName}`,
@@ -147,6 +166,8 @@ export default function ElderView({
       speakBtn: 'వాయిస్ సహాయం',
       readAllBtn: 'మొత్తం మందులు వినండి',
       readingBtn: 'వినిపిస్తోంది...',
+      metricsTitle: 'లైవ్ ఆరోగ్య సూచికలు (Clinical Health Metrics)',
+      metricsSub: 'అపోలో హోమ్‌కేర్ మరియు గ్లూకోమీటర్ ద్వారా నమోదు చేయబడిన వివరాలు',
       wellbeingQuestion: 'లక్ష్మి అమ్మా, మీరు ఇప్పుడు ఎలా ఉన్నారు?',
       wellbeingUpdated: 'రాజేష్ గారికి సమాచారం చేరింది',
       routineTitle: 'ఈ రోజు మందుల పట్టిక (Daily Routine)',
@@ -173,6 +194,14 @@ export default function ElderView({
         { id: 'tired', label: 'కొద్దిగా అలసట', sub: 'విశ్రాంతి అవసరం' },
         { id: 'help', label: 'సహాయం కావాలి', sub: 'కేర్‌గివర్‌ని పిలవండి' },
       ],
+      metricsLabels: {
+        bp: 'రక్తపోటు (BP)',
+        sugar: 'షుగర్ (Fasting)',
+        pulse: 'గుండె వేగం (Pulse)',
+        spo2: 'ఆక్సిజన్ (SpO2)',
+        weight: 'శరీర బరువు',
+        adherence: 'మందుల అమలు',
+      },
     },
     ta: {
       greeting: `வணக்கம், ${elder.preferredName}`,
@@ -180,6 +209,8 @@ export default function ElderView({
       speakBtn: 'குரல் உதவி',
       readAllBtn: 'மருந்துகளைக் கேளுங்கள்',
       readingBtn: 'ஒலிக்கிறது...',
+      metricsTitle: 'உடல்நல அளவீடுகள் (Health Metrics)',
+      metricsSub: 'அப்பல்லோ ஹோம் கேர் மற்றும் சாதனங்கள் மூலம் சரிபார்க்கப்பட்டது',
       wellbeingQuestion: 'அம்மா, இப்போது உங்கள் உடல்நிலை எப்படி உள்ளது?',
       wellbeingUpdated: 'ராஜேஷுக்கு தகவல் அனுப்பப்பட்டது',
       routineTitle: 'இன்றைய மருந்துகள் (Daily Routine)',
@@ -206,6 +237,14 @@ export default function ElderView({
         { id: 'tired', label: 'சிறிது சோர்வு', sub: 'ஓய்வு தேவை' },
         { id: 'help', label: 'உதவி தேவை', sub: 'குடும்பத்தினரை அழையுங்கள்' },
       ],
+      metricsLabels: {
+        bp: 'இரத்த அழுத்தம் (BP)',
+        sugar: 'சர்க்கரை அளவு',
+        pulse: 'நாடித் துடிப்பு',
+        spo2: 'ஆக்ஸிஜன் (SpO2)',
+        weight: 'உடல் எடை',
+        adherence: 'மருந்து ஒழுங்கு',
+      },
     },
     en: {
       greeting: `Namaste, ${elder.preferredName}`,
@@ -213,6 +252,8 @@ export default function ElderView({
       speakBtn: 'Voice Assistant',
       readAllBtn: 'Read Routine Aloud',
       readingBtn: 'Reading Aloud...',
+      metricsTitle: 'Live Health Metrics & Vitals Telemetry',
+      metricsSub: 'Recorded by Sister Kavitha, Apollo HomeCare & Verified Digital Devices',
       wellbeingQuestion: `How are you feeling right now, ${elder.preferredName}?`,
       wellbeingUpdated: 'Care circle notified in real time',
       routineTitle: "Today's Medication Routine",
@@ -239,6 +280,14 @@ export default function ElderView({
         { id: 'tired', label: 'Mild Fatigue', sub: 'Extra rest recommended' },
         { id: 'help', label: 'Need Assistance', sub: 'Alert care circle' },
       ],
+      metricsLabels: {
+        bp: 'Blood Pressure',
+        sugar: 'Fasting Glucose',
+        pulse: 'Resting Pulse',
+        spo2: 'Oxygen (SpO2)',
+        weight: 'Body Weight',
+        adherence: 'Adherence Score',
+      },
     },
   };
 
@@ -290,7 +339,7 @@ export default function ElderView({
       } else {
         textToSpeak += `कुल ${slotMeds.length} दवाइयां हैं। `;
         slotMeds.forEach((m, idx) => {
-          textToSpeak += `दवा नंबर ${idx + 1}: ${m.name}, खुराक ${m.dosage}। ${m.instructions}। `;
+          textToSpeak += `दवा नंबर ${idx + 1}: ${m.name}, खुराक ${m.dosage}। ${m.instructionsHindi || m.instructions}। `;
         });
         textToSpeak += 'दवा के साथ गुनगुना पानी जरूर पिएं।';
       }
@@ -309,7 +358,7 @@ export default function ElderView({
       } else {
         textToSpeak += `you have ${slotMeds.length} items. `;
         slotMeds.forEach((m, idx) => {
-          textToSpeak += `Pill ${idx + 1}: ${m.name}, dosage ${m.dosage}. ${m.instructions}. `;
+          textToSpeak += `Pill ${idx + 1}: ${m.name}, dosage ${m.dosage}. ${m.instructionsEnglish || m.instructions}. `;
         });
         textToSpeak += 'Remember to drink a glass of water.';
       }
@@ -373,7 +422,7 @@ export default function ElderView({
   ).length;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-5xl mx-auto px-2 sm:px-0">
       {/* Detail Modal */}
       <MedicationDetailModal
         medication={selectedMedForDetail}
@@ -381,10 +430,10 @@ export default function ElderView({
       />
 
       {/* Dignified Clinical Elder Welcome & Caregiver Sync Header */}
-      <section className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-sm relative overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
+      <section className="bg-white rounded-2xl p-4 sm:p-7 border border-slate-200/90 shadow-sm relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5 relative z-10">
           <div>
-            <div className="flex items-center space-x-2 text-slate-500 font-semibold mb-1 text-xs tracking-wider uppercase">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-slate-500 font-semibold mb-1 text-[11px] sm:text-xs tracking-wider uppercase">
               <Calendar className="w-3.5 h-3.5 text-emerald-700" />
               <span>
                 {new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -402,36 +451,144 @@ export default function ElderView({
               {currentStrings.familyNote}
             </p>
 
-            <div className="flex items-center space-x-2 mt-3 text-xs text-slate-500">
+            <div className="flex items-center space-x-2 mt-2.5 sm:mt-3 text-[11px] sm:text-xs text-slate-500">
               <span className="flex h-2 w-2 rounded-full bg-emerald-600 inline-block" />
-              <span className="font-semibold text-slate-700">
-                Rajesh connected from HITEC City • Sister Kavitha on call (Apollo HomeCare)
+              <span className="font-semibold text-slate-700 truncate">
+                Rajesh (HITEC City) • Sister Kavitha (Apollo HomeCare)
               </span>
             </div>
           </div>
 
-          {/* Action Buttons: Voice Mic + Read Aloud */}
-          <div className="flex flex-col sm:flex-row gap-2.5 shrink-0">
+          {/* Action Buttons: Voice Mic + Read Aloud (Responsive Stack) */}
+          <div className="flex flex-row sm:flex-row gap-2 sm:gap-2.5 shrink-0 w-full sm:w-auto">
             <button
               onClick={onOpenVoiceAssistant}
-              className="flex items-center justify-center space-x-2 px-4 py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 shadow-sm transition active:scale-95"
+              className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 shadow-sm transition active:scale-95 text-xs sm:text-sm"
             >
               <Mic className="w-4 h-4 text-emerald-700 animate-pulse" />
-              <span className="text-sm">{currentStrings.speakBtn}</span>
+              <span>{currentStrings.speakBtn}</span>
             </button>
 
             <button
               onClick={handleReadSchedule}
               disabled={isReadingSpeech}
-              className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-bold border transition shadow-sm active:scale-95 ${
+              className={`flex-1 sm:flex-none flex items-center justify-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl font-bold border transition shadow-sm active:scale-95 text-xs sm:text-sm ${
                 isReadingSpeech
                   ? 'bg-amber-50 text-amber-900 border-amber-300 animate-pulse'
                   : 'bg-emerald-800 hover:bg-emerald-900 text-white border-emerald-900'
               }`}
             >
               <Volume2 className="w-4 h-4" />
-              <span className="text-sm">{isReadingSpeech ? currentStrings.readingBtn : currentStrings.readAllBtn}</span>
+              <span>{isReadingSpeech ? currentStrings.readingBtn : currentStrings.readAllBtn}</span>
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Clinical Health Metrics & Vitals Telemetry (New Responsive Telemetry Bar) */}
+      <section className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/90 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-3 border-b border-slate-100 gap-1.5">
+          <div className="flex items-center space-x-2">
+            <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-700" />
+            <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+              {currentStrings.metricsTitle}
+            </h2>
+          </div>
+          <p className="text-[11px] text-slate-500">
+            {currentStrings.metricsSub}
+          </p>
+        </div>
+
+        {/* 6 Responsive Clinical Metric Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
+          {/* Blood Pressure */}
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500 mb-1">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase truncate">{currentStrings.metricsLabels.bp}</span>
+              <Stethoscope className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+            </div>
+            <div className="flex items-baseline space-x-1">
+              <span className="text-base sm:text-lg font-black text-slate-900">126/82</span>
+              <span className="text-[10px] font-bold text-slate-500">mmHg</span>
+            </div>
+            <span className="mt-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded w-fit">
+              Optimal
+            </span>
+          </div>
+
+          {/* Blood Sugar */}
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500 mb-1">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase truncate">{currentStrings.metricsLabels.sugar}</span>
+              <HeartPulse className="w-3.5 h-3.5 text-sky-700 shrink-0" />
+            </div>
+            <div className="flex items-baseline space-x-1">
+              <span className="text-base sm:text-lg font-black text-slate-900">108</span>
+              <span className="text-[10px] font-bold text-slate-500">mg/dL</span>
+            </div>
+            <span className="mt-1 text-[10px] font-bold text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded w-fit">
+              Target Met
+            </span>
+          </div>
+
+          {/* Heart Rate */}
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500 mb-1">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase truncate">{currentStrings.metricsLabels.pulse}</span>
+              <Heart className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+            </div>
+            <div className="flex items-baseline space-x-1">
+              <span className="text-base sm:text-lg font-black text-slate-900">72</span>
+              <span className="text-[10px] font-bold text-slate-500">bpm</span>
+            </div>
+            <span className="mt-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded w-fit">
+              Normal Sinus
+            </span>
+          </div>
+
+          {/* SpO2 */}
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500 mb-1">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase truncate">{currentStrings.metricsLabels.spo2}</span>
+              <Activity className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+            </div>
+            <div className="flex items-baseline space-x-1">
+              <span className="text-base sm:text-lg font-black text-slate-900">98</span>
+              <span className="text-[10px] font-bold text-slate-500">%</span>
+            </div>
+            <span className="mt-1 text-[10px] font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded w-fit">
+              Room Air
+            </span>
+          </div>
+
+          {/* Weight */}
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500 mb-1">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase truncate">{currentStrings.metricsLabels.weight}</span>
+              <Scale className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+            </div>
+            <div className="flex items-baseline space-x-1">
+              <span className="text-base sm:text-lg font-black text-slate-900">62.5</span>
+              <span className="text-[10px] font-bold text-slate-500">kg</span>
+            </div>
+            <span className="mt-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded w-fit">
+              BMI 23.4
+            </span>
+          </div>
+
+          {/* Adherence */}
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500 mb-1">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase truncate">{currentStrings.metricsLabels.adherence}</span>
+              <Percent className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            </div>
+            <div className="flex items-baseline space-x-1">
+              <span className="text-base sm:text-lg font-black text-slate-900">94</span>
+              <span className="text-[10px] font-bold text-slate-500">%</span>
+            </div>
+            <span className="mt-1 text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded w-fit">
+              14-Day Streak
+            </span>
           </div>
         </div>
       </section>
@@ -448,47 +605,47 @@ export default function ElderView({
       />
 
       {/* Daily Clinical Wellbeing Check-in */}
-      <section className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2 pb-3 border-b border-slate-100">
+      <section className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/90 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-2 pb-3 border-b border-slate-100">
           <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-700">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-700 shrink-0">
               <HeartPulse className="w-4 h-4 text-rose-600" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900 tracking-tight">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
                 {currentStrings.wellbeingQuestion}
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-[11px] sm:text-xs text-slate-500">
                 Recorded for Dr. K. S. Rao (Apollo Hospitals) & family visibility.
               </p>
             </div>
           </div>
           {wellbeingSubmitted && (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 flex items-center space-x-1 border border-emerald-200 self-start sm:self-auto">
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 flex items-center space-x-1 border border-emerald-200 self-start sm:self-auto">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
               <span>{currentStrings.wellbeingUpdated}</span>
             </span>
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {currentStrings.moods.map(item => {
             const isSelected = wellbeingMood === item.id;
             return (
               <button
                 key={item.id}
                 onClick={() => handleSelectMood(item.id)}
-                className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between space-y-1 ${
+                className={`p-3 rounded-xl border text-left transition flex flex-col justify-between space-y-1 ${
                   isSelected
                     ? 'border-emerald-800 bg-emerald-50/70 ring-1 ring-emerald-800 shadow-sm'
                     : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900 text-sm">{item.label}</span>
-                  {isSelected && <Check className="w-4 h-4 text-emerald-700 stroke-[3]" />}
+                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{item.label}</span>
+                  {isSelected && <Check className="w-3.5 h-3.5 text-emerald-700 stroke-[3]" />}
                 </div>
-                <span className="text-[11px] text-slate-500">{item.sub}</span>
+                <span className="text-[10px] sm:text-[11px] text-slate-500">{item.sub}</span>
               </button>
             );
           })}
@@ -496,19 +653,19 @@ export default function ElderView({
       </section>
 
       {/* Routine Time Slot Selector & Pill Cards */}
-      <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <h2 className="text-lg font-bold text-slate-900 flex items-center space-x-2 tracking-tight">
-            <Clock className="w-5 h-5 text-emerald-700" />
+      <section className="space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center space-x-2 tracking-tight">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-700" />
             <span>{currentStrings.routineTitle}</span>
           </h2>
-          <span className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-full border border-slate-200 self-start sm:self-auto">
+          <span className="text-[11px] sm:text-xs font-bold px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-full border border-slate-200 self-start sm:self-auto">
             {completedCount} of {filteredMeds.length} Taken
           </span>
         </div>
 
         {/* Tactile Slot Switch Tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {(['Morning', 'Afternoon', 'Evening', 'As Needed'] as const).map(slotId => {
             const slotInfo = currentStrings.slots[slotId] || { label: slotId, time: '' };
             const isSelected = activeSlot === slotId;
@@ -519,14 +676,14 @@ export default function ElderView({
                   SoundService.playTap();
                   setActiveSlot(slotId);
                 }}
-                className={`p-3 rounded-xl border font-bold transition flex flex-col items-center justify-center space-y-0.5 ${
+                className={`p-2.5 sm:p-3 rounded-xl border font-bold transition flex flex-col items-center justify-center space-y-0.5 ${
                   isSelected
                     ? 'bg-emerald-800 border-emerald-900 text-white shadow-sm'
                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 <span className="text-xs sm:text-sm">{slotInfo.label}</span>
-                <span className={`text-[11px] font-normal ${isSelected ? 'text-emerald-200' : 'text-slate-400'}`}>
+                <span className={`text-[10px] sm:text-[11px] font-normal ${isSelected ? 'text-emerald-200' : 'text-slate-400'}`}>
                   {slotInfo.time}
                 </span>
               </button>
@@ -535,14 +692,14 @@ export default function ElderView({
         </div>
 
         {/* List of Scheduled Medication Cards with Clinical Badges & 1-Tap Audio */}
-        <div className="space-y-3.5 mt-3">
+        <div className="space-y-3 mt-2 sm:mt-3">
           {filteredMeds.length === 0 ? (
-            <div className="bg-white rounded-2xl p-8 border border-dashed border-slate-300 text-center text-slate-500 shadow-sm">
-              <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto mb-2 opacity-80" />
-              <h3 className="text-base font-bold text-slate-800">
+            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-dashed border-slate-300 text-center text-slate-500 shadow-sm">
+              <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-600 mx-auto mb-2 opacity-80" />
+              <h3 className="text-sm sm:text-base font-bold text-slate-800">
                 {currentStrings.allDoneForSlot}
               </h3>
-              <p className="text-xs mt-1 text-slate-500">{currentStrings.noPendingSlot}</p>
+              <p className="text-[11px] sm:text-xs mt-1 text-slate-500">{currentStrings.noPendingSlot}</p>
             </div>
           ) : (
             filteredMeds.map(med => {
@@ -563,19 +720,19 @@ export default function ElderView({
               return (
                 <div
                   key={med.id}
-                  className={`bg-white rounded-2xl p-5 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                  className={`bg-white rounded-2xl p-4 sm:p-5 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 ${
                     isTaken ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200/90 hover:border-slate-300 shadow-sm'
                   }`}
                 >
                   {/* Left Pill Info with Clinical Tablet Preview & Audio Speaker */}
-                  <div className="flex items-start sm:items-center space-x-4">
+                  <div className="flex items-start sm:items-center space-x-3 sm:space-x-4">
                     {/* Clickable Pharmaceutical Pill Preview */}
                     <div
                       onClick={() => {
                         SoundService.playTap();
                         setSelectedMedForDetail(med);
                       }}
-                      className="cursor-pointer group flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition shrink-0"
+                      className="cursor-pointer group flex flex-col items-center justify-center p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition shrink-0"
                       title="Click to view full prescription"
                     >
                       <PillVisual3D
@@ -589,18 +746,18 @@ export default function ElderView({
                       </span>
                     </div>
 
-                    <div className="space-y-1 flex-1">
+                    <div className="space-y-1 flex-1 min-w-0">
                       {/* Clinical Visual Identifier Chip */}
-                      <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
-                        <span className="w-2 h-2 rounded-full bg-slate-500 inline-block" />
-                        <span>{visualTag}</span>
+                      <div className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200 max-w-full truncate">
+                        <span className="w-2 h-2 rounded-full bg-slate-500 inline-block shrink-0" />
+                        <span className="truncate">{visualTag}</span>
                       </div>
 
-                      <div className="flex items-center space-x-2 pt-0.5">
-                        <h3 className="text-lg font-bold text-slate-900 tracking-tight">
+                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                           {med.name}
                         </h3>
-                        <span className="px-2 py-0.5 rounded text-[11px] font-extrabold bg-slate-100 text-slate-800 border border-slate-200">
+                        <span className="px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-extrabold bg-slate-100 text-slate-800 border border-slate-200">
                           {med.dosage}
                         </span>
                       </div>
@@ -613,14 +770,13 @@ export default function ElderView({
                           : med.instructionsEnglish || med.instructions}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 pt-0.5">
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs text-slate-500 pt-0.5">
                         <span className="flex items-center space-x-1 font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
-                          <Utensils className="w-3 h-3 text-amber-700" />
+                          <Utensils className="w-3 h-3 text-amber-700 shrink-0" />
                           <span>{med.foodRequirement.replace('-', ' ')}</span>
                         </span>
                         <span>•</span>
                         <span className="flex items-center space-x-1 text-slate-500">
-                          <Droplets className="w-3 h-3 text-sky-600" />
                           <span>{currentStrings.waterNote}</span>
                         </span>
                       </div>
@@ -628,11 +784,11 @@ export default function ElderView({
                   </div>
 
                   {/* Right Actions: Native Voice Speaker Button + Mark Taken */}
-                  <div className="flex items-center space-x-2 self-end sm:self-center shrink-0">
+                  <div className="flex items-center space-x-2 self-stretch sm:self-center shrink-0 pt-1 sm:pt-0">
                     {/* Instant Audio Speaker Button for this pill */}
                     <button
                       onClick={() => handleSpeakPill(med)}
-                      className={`p-2.5 sm:px-3 sm:py-2.5 rounded-xl border font-bold transition flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 ${
+                      className={`flex-1 sm:flex-none p-2 sm:px-3 sm:py-2.5 rounded-xl border font-bold transition flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 ${
                         isSpeakingThis
                           ? 'bg-amber-100 border-amber-400 text-amber-950 animate-pulse'
                           : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-300 text-emerald-900'
@@ -640,20 +796,20 @@ export default function ElderView({
                       title="Audio pill directions in your mother tongue"
                     >
                       <Volume2 className="w-4 h-4 text-emerald-800" />
-                      <span className="text-xs font-bold hidden md:inline">
+                      <span className="text-xs font-bold">
                         {isSpeakingThis ? currentStrings.speakingBtn : currentStrings.listenBtn}
                       </span>
                     </button>
 
                     {isTaken ? (
-                      <div className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-emerald-100 text-emerald-900 font-bold text-xs sm:text-sm border border-emerald-300">
+                      <div className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-100 text-emerald-900 font-bold text-xs sm:text-sm border border-emerald-300">
                         <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                         <span>{currentStrings.takenBadge}</span>
                       </div>
                     ) : (
                       <button
                         onClick={() => handleMarkDose(med.id, currentSchedule?.time || '08:00')}
-                        className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm shadow transition active:scale-95"
+                        className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm shadow transition active:scale-95"
                       >
                         <Check className="w-4 h-4 stroke-[3]" />
                         <span>{currentStrings.markTakenBtn}</span>
@@ -670,17 +826,17 @@ export default function ElderView({
       {/* Clinical Hydration Routine */}
       <HydrationTracker initialCount={5} />
 
-      {/* Emergency SOS Bar */}
-      <section className="bg-rose-50/70 rounded-2xl p-5 sm:p-6 border border-rose-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3.5">
-          <div className="w-11 h-11 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-            <ShieldAlert className="w-6 h-6" />
+      {/* Emergency SOS Bar (Responsive flex) */}
+      <section className="bg-rose-50/70 rounded-2xl p-4 sm:p-6 border border-rose-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <ShieldAlert className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900">
               {currentStrings.sosTitle}
             </h3>
-            <p className="text-xs text-slate-600 max-w-xl">
+            <p className="text-[11px] sm:text-xs text-slate-600 max-w-xl">
               {currentStrings.sosSub}
             </p>
           </div>
@@ -688,7 +844,7 @@ export default function ElderView({
 
         <button
           onClick={onTriggerSos}
-          className="shrink-0 px-5 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-sm shadow-md flex items-center justify-center space-x-2 active:scale-95 transition"
+          className="w-full sm:w-auto shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs sm:text-sm shadow-md flex items-center justify-center space-x-2 active:scale-95 transition"
         >
           <ShieldAlert className="w-4 h-4" />
           <span>{currentStrings.sosBtn}</span>
