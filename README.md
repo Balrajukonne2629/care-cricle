@@ -14,41 +14,45 @@
 
 ## 🎯 Chosen Vertical
 
-**Vertical:** **Elderly Healthcare Management, Medication Adherence & Caregiver Coordination**  
+**Vertical:** **Elderly Healthcare Management, Medication Adherence & Caregiver Coordination (Indian Healthcare Edition)**  
 **Target Persona:** 
-- **Primary Patient:** Eleanor Vance (78 years old), managing chronic hypertension, Type 2 diabetes, and high cholesterol.
-- **Family Advocate:** Sarah Vance-Miller (Daughter), seeking peace of mind, proactive escalation on missed doses, and daily wellbeing visibility.
-- **Visiting Clinician:** Nurse David Martinez, RN, tracking clinical adherence telemetry, vital signs, and medication administration.
-- **Attending Physician:** Dr. Michael Chen, MD (Cardiologist), reviewing 30-day compliance reports and pharmacological interaction safety.
+- **Primary Patient:** Smt. Lakshmi Devi / "Lakshmi Amma" (76 years old, Banjara Hills, Hyderabad), managing chronic hypertension, Type 2 diabetes, GERD, and hyperlipidemia.
+- **Family Advocate:** Rajesh Kumar (Son, Lead Engineer in HITEC City, Hyderabad), seeking peace of mind, proactive escalation on missed doses, refill monitoring, and daily wellbeing visibility.
+- **Visiting Clinician:** Sister Kavitha, RN (Apollo HomeCare Hyderabad), tracking clinical adherence telemetry, vitals (BP/sugar), and medication administration.
+- **Attending Physician:** Dr. K. S. Rao, MD, DM (Senior Consultant Cardiologist, Apollo Hospitals Jubilee Hills), reviewing 30-day compliance reports, lipid panels, and pharmacological safety.
 
 ---
 
 ## 🧠 Approach and Logic
 
-### 1. Human-Centered Architectural Philosophy
+### 1. Human-Centered Architectural Philosophy (Indian Elder & Multilingual Context)
 Rather than building another generic reminder app or punitive alarm clock, CareCircle was designed under the **"Senior at the Center"** doctrine:
-- **Autonomy First:** Eleanor retains full dignity and control over her own routine. She can log doses with a single oversized tactile tap or by speaking naturally into the voice assistant.
-- **Proactive Escalation Protocol:** If a critical medication is not marked as taken within a **30-minute grace period**, the platform automatically dispatches an urgent escalation email to daughter Sarah. The senior is not spammed with loud alarms; instead, the family circle is quietly and reliably alerted.
-- **Clinical Safety Intercept:** Every prescription addition or dosage change passes through an automated **Clinical Drug-to-Drug and Drug-to-Food Interaction Matrix** (e.g., detecting severe hyperkalemia risks with ACE-inhibitors and potassium, or GI hemorrhage risks with NSAIDs and blood thinners).
-- **Physical Hardware Symbiosis:** The digital UI mimics the physical bedside weekly acrylic pill organizer, reinforcing cognitive familiarization for seniors.
+- **Autonomy First & Mother-Tongue Voice Interaction:** Lakshmi Amma retains full dignity and control over her own routine. She can log doses with a single oversized tactile tap or by speaking naturally in her native mother tongue (**Hindi `hi-IN`**, **Telugu `te-IN`**, **Tamil `ta-IN`**, or **Indian English `en-IN`**).
+- **Audio-First "Dawa Suno" Spoken Guidance:** Every medication card features a dedicated 1-tap **"Dawa Suno / Mandu Vinandi (Listen)"** audio button that speaks the pill name, color, timing, and whether to take it on an empty stomach (*khali pet / khali kadupulo*) or after food (*khana khane ke baad / bhojanam taruvatha*) in the elder's selected mother tongue.
+- **Visual Pill & Blister Identification over Tiny Text:** To counter age-related presbyopia and low literacy barriers, medications are instantly recognizable by high-contrast visual badges:
+  - **Color & Shape Badges:** *PEELA CAPSULE* (Yellow Capsule - Pan-D), *GULABI GOLI* (Pink Round - Telma 40), *SAFED GOLI* (White Oval - Glycomet-SR 500), *AMBER GOLI* (Rosuvas 10), *MINT GOLI* (Ecosprin 75).
+  - **Realistic 3D Pill Visualizer:** Dual-tone blister previews and tactile geometry so the elder never takes the wrong tablet.
+- **Proactive Escalation Protocol:** If a critical medication is not marked as taken within a **30-minute grace period**, the platform automatically dispatches an urgent escalation email to son Rajesh in HITEC City. The senior is not spammed with loud alarms; instead, the family circle is quietly and reliably alerted.
+- **Clinical Safety Intercept (Indian Formulary):** Every prescription addition or dosage change passes through an automated **Clinical Drug-to-Drug and Drug-to-Food Interaction Matrix** (e.g., detecting severe hyperkalemia risks with Telmisartan + Potassium Chloride, GI hemorrhage with Ecosprin + Brufen/NSAIDs, or Metformin + contrast dye).
+- **Physical Hardware Symbiosis:** The digital UI mimics the physical bedside weekly acrylic pill organizer, reinforcing cognitive familiarization for Indian seniors.
 
 ### 2. State & Telemetry Flow
 ```mermaid
 flowchart TD
-    Elder["Elder Interaction (Tactile / Voice)"] -->|1-Tap Log Dose| AdhApi["/api/adherence"]
-    Elder -->|Voice Intent| SpeechEngine["Web Speech API"] --> AdhApi
+    Elder["Elder Interaction (Tactile / Native Voice)"] -->|1-Tap 'Dawa Le Li'| AdhApi["/api/adherence"]
+    Elder -->|Voice: 'Dawa Suno' / 'Mandu Teesukunna'| SpeechEngine["Web Speech API (hi-IN / te-IN / en-IN)"] --> AdhApi
     
     AdhApi --> Decrement["Auto-decrement Inventory"]
-    Decrement --> CheckThreshold{"Inventory <= Threshold?"}
-    CheckThreshold -->|Yes| RefillAlert["Automated Pharmacy & Family Email"]
+    Decrement --> CheckThreshold{"Inventory <= 5 Tablets?"}
+    CheckThreshold -->|Yes| RefillAlert["Automated Jan Aushadhi / Apollo Pharmacy Alert to Family"]
     
     Scheduler["Cron / Timer Routine"] --> CheckDose{"Dose Taken Within Grace Period?"}
-    CheckDose -->|No| Escalation["Proactive Family Escalation Email Dispatch"]
+    CheckDose -->|No| Escalation["Proactive Family Escalation Email Dispatch to Rajesh"]
     
     Caregiver["Family & Caregiver Hub"] -->|Passcode PIN 5678/9999| AuthVault["Passcode Vault"]
-    AuthVault --> Telemetry["30-Day Adherence Heatmap (91%)"]
-    AuthVault --> Interaction["Drug Interaction Safety Guard"]
-    AuthVault --> Appointments["Calendar Sync (.ICS) & Doctor Report"]
+    AuthVault --> Telemetry["30-Day Adherence Heatmap (94%)"]
+    AuthVault --> Interaction["Drug Interaction Safety Guard (Telma / Glycomet / Pan-D)"]
+    AuthVault --> Appointments["Calendar Sync (.ICS) - Apollo Hospitals & LVPEI"]
 ```
 
 ---
@@ -59,10 +63,10 @@ flowchart TD
 Shared access is secured through a tactile 4-digit PIN authentication pad with built-in brute-force rate limiting:
 | Role | Name | Security PIN | Access Boundaries & Capabilities |
 | :--- | :--- | :---: | :--- |
-| **Elder** | Eleanor Vance (78 yo) | `1234` | Oversized tactile routine cards, 1-tap pill confirmation, Web Speech voice assistant, audio schedule reading, mood check-in, emergency SOS. |
-| **Family** | Sarah Vance-Miller (Daughter) | `5678` | Real-time adherence telemetry, missed dose escalation emails, refill notices, family coordination notes. |
-| **Nurse** | David Martinez, RN | `9999` | Clinical medication manager (dosage, frequency, pill shape/color), vital signs logger, refill tracking. |
-| **Physician** | Dr. Michael Chen, MD | `4321` | Prescription adjustments, pharmacological safety reviews, printable 30-day clinical adherence reports. |
+| **Elder** | Smt. Lakshmi Devi (76 yo) | `1234` | Oversized tactile routine cards, 1-tap pill confirmation, native multilingual voice assistant, audio "Dawa Suno" reading, mood check-in, emergency SOS. |
+| **Family** | Rajesh Kumar (Son) | `5678` | Real-time adherence telemetry, missed dose escalation emails, Apollo Pharmacy refill notices, family coordination notes. |
+| **Nurse** | Sister Kavitha, RN (Apollo HomeCare) | `9999` | Clinical medication manager (dosage, frequency, pill shape/color), vital signs logger (BP/Sugar), refill tracking. |
+| **Physician** | Dr. K. S. Rao, MD, DM (Cardiologist) | `4321` | Prescription adjustments, pharmacological safety reviews, printable 30-day clinical adherence reports. |
 
 ### 2. Senior-First Tactile Interface (`ElderView`)
 - **Smart Weekly Pill Dispenser (`PillOrganizer3D`)**: Renders a physical 7-day (Mon–Sun) acrylic bedside organizer with AM, Noon, and PM blister compartments loaded with 3D miniature pill models.

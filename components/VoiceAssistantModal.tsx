@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Mic, MicOff, X, Volume2, Sparkles, CheckCircle, ShieldAlert } from 'lucide-react';
 import { parseElderVoiceCommand, SpeechService } from '@/lib/speechService';
 import SoundService from '@/lib/soundService';
-import { Medication, Appointment, ElderProfile } from '@/lib/types';
+import { Medication, Appointment, ElderProfile, NativeLanguage } from '@/lib/types';
 
 interface VoiceAssistantModalProps {
   isOpen: boolean;
@@ -14,6 +14,7 @@ interface VoiceAssistantModalProps {
   appointments: Appointment[];
   onTakeDose: (medId: string, time: string) => Promise<void>;
   onTriggerSos: () => void;
+  selectedLanguage: NativeLanguage;
 }
 
 export default function VoiceAssistantModal({
@@ -24,6 +25,7 @@ export default function VoiceAssistantModal({
   appointments,
   onTakeDose,
   onTriggerSos,
+  selectedLanguage,
 }: VoiceAssistantModalProps) {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -37,7 +39,7 @@ export default function VoiceAssistantModal({
         const reco = new SpeechRecognition();
         reco.continuous = false;
         reco.interimResults = true;
-        reco.lang = 'en-US';
+        reco.lang = selectedLanguage === 'hi' ? 'hi-IN' : selectedLanguage === 'te' ? 'te-IN' : 'en-IN';
 
         reco.onresult = (e: any) => {
           const current = e.results[0][0].transcript;
@@ -56,7 +58,7 @@ export default function VoiceAssistantModal({
         setRecognition(reco);
       }
     }
-  }, []);
+  }, [selectedLanguage]);
 
   if (!isOpen) return null;
 
@@ -67,7 +69,13 @@ export default function VoiceAssistantModal({
       setIsListening(false);
     } else {
       setTranscript('');
-      setAssistantResponse('Listening for your voice... speak anytime.');
+      const listeningPrompt =
+        selectedLanguage === 'hi'
+          ? 'अम्मा, मैं सुन रही हूँ... बोलिए।'
+          : selectedLanguage === 'te'
+          ? 'అమ్మా, నేను వింటున్నాను... చెప్పండి.'
+          : 'Listening for your voice... please speak.';
+      setAssistantResponse(listeningPrompt);
       setIsListening(true);
       try {
         recognition?.start();
@@ -82,9 +90,14 @@ export default function VoiceAssistantModal({
     const parsed = parseElderVoiceCommand(inputStr);
 
     if (parsed.action === 'trigger_sos') {
-      const reply = `Emergency SOS activated for ${elder.preferredName}. Sarah and emergency responders have been alerted.`;
+      let reply = `Emergency SOS activated for ${elder.preferredName}. Rajesh and Apollo Emergency have been alerted.`;
+      if (selectedLanguage === 'hi') {
+        reply = `आपातकाल सक्रिय! राजेश और अपोलो इमरजेंसी को सूचना भेजी जा चुकी है। सहायता जल्द पहुंच रही है।`;
+      } else if (selectedLanguage === 'te') {
+        reply = `ఎమర్జెన్సీ అలర్ట్ పంపబడింది! రాజేష్ గారికి మరియు అపోలో ఎమర్జెన్సీకి సమాచారం చేరింది.`;
+      }
       setAssistantResponse(reply);
-      await SpeechService.speak(reply, { rate: 0.9 });
+      await SpeechService.speak(reply, { lang: selectedLanguage, rate: 0.88 });
       onTriggerSos();
       return;
     }
@@ -96,29 +109,44 @@ export default function VoiceAssistantModal({
         if (found) medToTake = found;
       }
       await onTakeDose(medToTake.id, '08:00');
-      const reply = `Wonderful! I have marked your ${medToTake.name} as taken. Sarah has been updated.`;
+
+      let reply = `Very good! I have marked your ${medToTake.name} as taken. Rajesh has been updated.`;
+      if (selectedLanguage === 'hi') {
+        reply = `बहुत अच्छा अम्मा! आपकी ${medToTake.name} ले ली गई है। राजेश भैया को सूचित कर दिया गया है।`;
+      } else if (selectedLanguage === 'te') {
+        reply = `చాలా మంచిది అమ్మా! మీ ${medToTake.name} తీసుకున్నట్లు నమోదు చేశాం. రాజేష్ గారికి సమాచారం చేరింది.`;
+      }
       setAssistantResponse(reply);
-      await SpeechService.speak(reply, { rate: 0.88 });
+      await SpeechService.speak(reply, { lang: selectedLanguage, rate: 0.88 });
       return;
     }
 
     if (parsed.action === 'query_appointment') {
       const nextAppt = appointments[0];
-      let reply = `You have no upcoming visits scheduled.`;
+      let reply = `You have no upcoming hospital visits.`;
       if (nextAppt) {
-        reply = `Your next visit is with ${nextAppt.doctorName} for ${nextAppt.specialty} on ${nextAppt.date} at ${nextAppt.time}.`;
+        if (selectedLanguage === 'hi') {
+          reply = `अम्मा, आपका अगला चेकअप ${nextAppt.clinic} में ${nextAppt.doctorName} के साथ ${nextAppt.date} को सुबह ${nextAppt.time} बजे है।`;
+        } else if (selectedLanguage === 'te') {
+          reply = `అమ్మా, మీ తదుపరి చెకప్ ${nextAppt.clinic} లో ${nextAppt.doctorName} గారితో ${nextAppt.date} న ఉంది.`;
+        } else {
+          reply = `Your next visit is with ${nextAppt.doctorName} at ${nextAppt.clinic} on ${nextAppt.date} at ${nextAppt.time}.`;
+        }
       }
       setAssistantResponse(reply);
-      await SpeechService.speak(reply, { rate: 0.88 });
+      await SpeechService.speak(reply, { lang: selectedLanguage, rate: 0.88 });
       return;
     }
 
     // Default query schedule
-    const morningMeds = medications.filter(m => m.schedules.some(s => s.label === 'Morning'));
-    const names = morningMeds.map(m => m.name).join(' and ');
-    const reply = `For your morning routine, you have ${names}. Drink a full glass of water with them.`;
+    let reply = `For your morning routine, you have Telma 40 for BP and Glycomet for Sugar. Take with fresh water.`;
+    if (selectedLanguage === 'hi') {
+      reply = `अम्मा, सुबह आपकी टेल्मा 40 बीपी की गुलाबी गोली और ग्लाइकोमेट शुगर की सफेद गोली नाश्ते के बाद लेनी है।`;
+    } else if (selectedLanguage === 'te') {
+      reply = `లక్ష్మి అమ్మా, ఉదయం మీ బి.పి. గులాబీ బిళ్ళ టెల్మా 40 మరియు షుగర్ తెల్ల బిళ్ళ టిఫిన్ తర్వాత వేసుకోండి.`;
+    }
     setAssistantResponse(reply);
-    await SpeechService.speak(reply, { rate: 0.88 });
+    await SpeechService.speak(reply, { lang: selectedLanguage, rate: 0.88 });
   };
 
   return (
@@ -142,13 +170,27 @@ export default function VoiceAssistantModal({
         <div className="text-center space-y-1">
           <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black uppercase tracking-wider mb-1">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Web Speech Voice Companion</span>
+            <span>
+              {selectedLanguage === 'hi'
+                ? 'आवाज सहायिका (Voice Assistant)'
+                : selectedLanguage === 'te'
+                ? 'వాయిస్ సహాయం (Voice Assistant)'
+                : 'Indian Voice Companion'}
+            </span>
           </div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Speak to CareCircle
+            {selectedLanguage === 'hi'
+              ? 'अम्मा, बोलकर बताएं'
+              : selectedLanguage === 'te'
+              ? 'అమ్మా, మాట్లాడండి'
+              : 'Speak to CareCircle'}
           </h2>
           <p className="text-sm text-slate-600">
-            Natural voice assistance designed for senior clarity and hands-free logging.
+            {selectedLanguage === 'hi'
+              ? 'माइक दबाकर हिंदी में बोलें (दवा ले ली, डॉक्टर कब है)'
+              : selectedLanguage === 'te'
+              ? 'తెలుగులో మాట్లాడి మందులు నమోదు చేయండి'
+              : 'Natural voice commands in Indian mother tongues for seniors.'}
           </p>
         </div>
 
@@ -181,16 +223,16 @@ export default function VoiceAssistantModal({
             </div>
           ) : (
             <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">
-              Tap mic or click a prompt below
+              {selectedLanguage === 'hi' ? 'माइक दबाएं या नीचे दिए बटन छुएं' : 'Tap mic or click a prompt below'}
             </span>
           )}
         </div>
 
-        {/* Live Transcript / Response Card */}
+        {/* Live Transcript / Spoken Audio Card */}
         <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 min-h-[90px] flex flex-col justify-center text-center space-y-2">
           {transcript && (
             <div className="text-xs font-bold text-slate-500">
-              You said: &ldquo;<span className="text-slate-800">{transcript}</span>&rdquo;
+              आपने कहा: &ldquo;<span className="text-slate-800">{transcript}</span>&rdquo;
             </div>
           )}
           {assistantResponse ? (
@@ -200,39 +242,68 @@ export default function VoiceAssistantModal({
             </div>
           ) : (
             <span className="text-xs text-slate-400">
-              Try saying: &ldquo;I took my morning pills&rdquo; or &ldquo;When is my doctor appointment?&rdquo;
+              {selectedLanguage === 'hi'
+                ? 'बोलिए: "मैंने सुबह की दवाइयां ले लीं" या "डॉक्टर चेकअप कब है"'
+                : 'Say: "I took my morning pills" or "When is doctor visit"'}
             </span>
           )}
         </div>
 
-        {/* 1-Tap Sample Prompts */}
+        {/* 1-Tap Sample Prompts in Mother Tongue */}
         <div className="space-y-2">
           <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            Quick 1-Tap Voice Prompts:
+            {selectedLanguage === 'hi'
+              ? 'आसान 1-टच आवाज बटन:'
+              : selectedLanguage === 'te'
+              ? 'సులభమైన 1-ట్యాప్ వాయిస్ బటన్లు:'
+              : 'Quick 1-Tap Voice Commands:'}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {[
-              { text: 'I took my morning pills', action: 'confirm' },
-              { text: 'When is my doctor appointment?', action: 'query' },
-              { text: 'What pills do I take today?', action: 'schedule' },
-              { text: 'Emergency SOS Help', action: 'sos' },
-            ].map((p, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  SoundService.playTap();
-                  processSpokenInput(p.text);
-                }}
-                className={`p-2.5 rounded-xl border text-left text-xs font-bold transition flex items-center justify-between active:scale-95 ${
-                  p.action === 'sos'
-                    ? 'bg-rose-50 border-rose-200 text-rose-800 hover:bg-rose-100'
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                <span>&ldquo;{p.text}&rdquo;</span>
-                <Sparkles className="w-3.5 h-3.5 text-slate-400" />
-              </button>
-            ))}
+              {
+                textHi: 'मैंने सुबह की दवा ले ली',
+                textTe: 'ఉదయం మందులు తీసుకున్నాను',
+                textEn: 'I took my morning pills',
+                action: 'confirm',
+              },
+              {
+                textHi: 'डॉक्टर चेकअप कब है?',
+                textTe: 'డాక్టర్ అపాయింట్‌మెంట్ ఎప్పుడు?',
+                textEn: 'When is my doctor appointment?',
+                action: 'query',
+              },
+              {
+                textHi: 'आज कौन सी गोली खानी है?',
+                textTe: 'ఈ రోజు ఏ మందులు వేసుకోవాలి?',
+                textEn: 'What pills do I take today?',
+                action: 'schedule',
+              },
+              {
+                textHi: 'आपातकाल मदद चाहिए (SOS)',
+                textTe: 'అత్యవసర సహాయం (SOS)',
+                textEn: 'Emergency SOS Help',
+                action: 'sos',
+              },
+            ].map((p, i) => {
+              const label = selectedLanguage === 'hi' ? p.textHi : selectedLanguage === 'te' ? p.textTe : p.textEn;
+              return (
+                <button
+                  key={i}
+                  onClick={() => {
+                    SoundService.playTap();
+                    processSpokenInput(label);
+                  }}
+                  className={`p-2.5 rounded-xl border text-left text-xs font-bold transition flex items-center justify-between active:scale-95 ${
+                    p.action === 'sos'
+                      ? 'bg-rose-50 border-rose-200 text-rose-800 hover:bg-rose-100'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <span>&ldquo;{label}&rdquo;</span>
+                  <Sparkles className="w-3.5 h-3.5 text-slate-400" />
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

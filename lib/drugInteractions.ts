@@ -24,6 +24,16 @@ export const CLINICAL_INTERACTION_DATABASE: DrugInteraction[] = [
   },
   {
     id: 'int-3',
+    drugA: 'Telmisartan',
+    drugB: 'Potassium Chloride',
+    type: 'drug-drug',
+    severity: 'critical',
+    clinicalSummary: 'ARBs and ACE inhibitors cause renal potassium retention. Exogenous potassium risks life-threatening hyperkalemia and cardiac dysrhythmias.',
+    elderExplanation: 'Telma (Telmisartan) already keeps potassium in your body. Extra potassium pills can dangerously spike your blood levels and affect your heart rhythm.',
+    recommendation: 'Do not take potassium supplements unless explicitly monitored with periodic serum potassium blood tests.',
+  },
+  {
+    id: 'int-3-lisinopril',
     drugA: 'Lisinopril',
     drugB: 'Potassium Chloride',
     type: 'drug-drug',
@@ -124,9 +134,17 @@ export const CLINICAL_INTERACTION_DATABASE: DrugInteraction[] = [
   }
 ];
 
-// Helper to normalize medication names for matching
+// Helper to normalize medication names for matching and synonym expansion
 export function normalizeDrugName(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const lower = name.toLowerCase();
+  if (lower.includes('telma') || lower.includes('telmisartan')) return 'telmisartan';
+  if (lower.includes('glycomet') || lower.includes('metformin')) return 'metformin';
+  if (lower.includes('rosuvas') || lower.includes('rosuvastatin')) return 'rosuvastatin';
+  if (lower.includes('ecosprin') || lower.includes('aspirin')) return 'aspirin';
+  if (lower.includes('brufen') || lower.includes('combiflam') || lower.includes('ibuprofen')) return 'ibuprofen';
+  if (lower.includes('pan-d') || lower.includes('pantoprazole')) return 'pantoprazole';
+  if (lower.includes('potklor') || lower.includes('potassium')) return 'potassium chloride';
+  return lower.replace(/[^a-z0-9]/g, '');
 }
 
 /**

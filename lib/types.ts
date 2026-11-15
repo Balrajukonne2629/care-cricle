@@ -1,4 +1,5 @@
 export type Role = 'elder' | 'family' | 'nurse' | 'doctor' | 'system';
+export type NativeLanguage = 'en' | 'hi' | 'te' | 'ta';
 
 export interface UserRolePin {
   role: Role;
@@ -43,6 +44,7 @@ export interface ElderProfile {
   voiceSpeed: number;
   fontSize: 'standard' | 'large' | 'extra-large';
   highContrast: boolean;
+  preferredLanguage?: NativeLanguage;
   primaryPhysician: {
     name: string;
     clinic: string;
@@ -91,6 +93,12 @@ export interface Medication {
   pharmacyPhone?: string;
   sideEffectsWarnings?: string[];
   isActive: boolean;
+  visualTagHindi?: string;
+  visualTagTelugu?: string;
+  voiceDescriptionHindi?: string;
+  voiceDescriptionTelugu?: string;
+  voiceDescriptionTamil?: string;
+  voiceDescriptionEnglish?: string;
 }
 
 export interface AdherenceLog {
@@ -152,7 +160,7 @@ export interface ActivityFeedItem {
 export interface NotificationLog {
   id: string;
   timestamp: string;
-  type: 'medication_reminder' | 'missed_dose_alert' | 'sos_emergency' | 'refill_alert' | 'appointment_reminder';
+  type: 'medication_reminder' | 'missed_dose_alert' | 'sos_emergency' | 'refill_alert' | 'appointment_reminder' | 'daily_schedule' | 'refill';
   recipientName: string;
   recipientEmail: string;
   subject: string;

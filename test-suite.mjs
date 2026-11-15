@@ -102,9 +102,9 @@ async function runTestSuite() {
     assert.ok(json.data.length >= 3, 'Must have pre-seeded medications (Lisinopril, Metformin, etc.)');
     assert.ok(Array.isArray(json.interactions), 'Interactions must be returned');
     
-    // Verify Lisinopril is present
-    const lisinopril = json.data.find(m => m.name.toLowerCase().includes('lisinopril'));
-    assert.ok(lisinopril, 'Lisinopril should be pre-seeded');
+    // Verify Telma / Lisinopril is present
+    const bpMed = json.data.find(m => m.name.toLowerCase().includes('telma') || m.name.toLowerCase().includes('lisinopril'));
+    assert.ok(bpMed, 'Hypertension BP medicine (Telma 40 / Lisinopril) should be pre-seeded');
   });
 
   let createdMedId = null;
@@ -138,13 +138,13 @@ async function runTestSuite() {
     assert.strictEqual(json.data.name, 'Potassium Chloride');
 
     // Clinical Drug Interaction verification:
-    // Lisinopril + Potassium Chloride = Critical Hyperkalemia Warning
+    // Telmisartan / Lisinopril + Potassium Chloride = Critical Hyperkalemia Warning
     assert.ok(Array.isArray(json.interactions), 'Must return updated interactions');
     const criticalInteraction = json.interactions.find(i =>
-      (i.drugA.toLowerCase().includes('lisinopril') && i.drugB?.toLowerCase().includes('potassium')) ||
-      (i.drugA.toLowerCase().includes('potassium') && i.drugB?.toLowerCase().includes('lisinopril'))
+      ((i.drugA.toLowerCase().includes('telmisartan') || i.drugA.toLowerCase().includes('lisinopril')) && i.drugB?.toLowerCase().includes('potassium')) ||
+      (i.drugA.toLowerCase().includes('potassium') && (i.drugB?.toLowerCase().includes('telmisartan') || i.drugB?.toLowerCase().includes('lisinopril')))
     );
-    assert.ok(criticalInteraction, 'Drug interaction engine MUST flag Lisinopril + Potassium Chloride');
+    assert.ok(criticalInteraction, 'Drug interaction engine MUST flag Telmisartan/Lisinopril + Potassium Chloride');
     assert.strictEqual(criticalInteraction.severity, 'critical', 'Interaction severity must be critical');
     assert.ok(criticalInteraction.elderExplanation.length > 10, 'Must include elder-friendly explanation');
     assert.ok(criticalInteraction.clinicalSummary.length > 10, 'Must include clinical explanation');

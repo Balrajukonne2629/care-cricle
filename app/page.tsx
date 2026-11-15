@@ -30,6 +30,7 @@ import {
   ActivityFeedItem,
   NotificationLog,
   CareCircleMember,
+  NativeLanguage,
 } from '@/lib/types';
 import SoundService from '@/lib/soundService';
 import { SpeechService } from '@/lib/speechService';
@@ -51,6 +52,7 @@ export default function CareCircleApp() {
   const [fontSize, setFontSize] = useState<'standard' | 'large' | 'extra-large'>('large');
   const [highContrast, setHighContrast] = useState<boolean>(false);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [selectedLanguage, setSelectedLanguage] = useState<NativeLanguage>('hi');
 
   // Modals Visibility
   const [isPasscodeOpen, setIsPasscodeOpen] = useState<boolean>(false);
@@ -348,6 +350,11 @@ export default function CareCircleApp() {
           const newState = SoundService.toggleSound();
           setSoundEnabled(newState);
         }}
+        selectedLanguage={selectedLanguage}
+        onSelectLanguage={lang => {
+          setSelectedLanguage(lang);
+          SpeechService.setLanguage(lang);
+        }}
       />
 
       {/* Main Responsive Body */}
@@ -361,6 +368,7 @@ export default function CareCircleApp() {
             onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
             vitals={vitals}
             fontSize={fontSize}
+            selectedLanguage={selectedLanguage}
           />
         ) : (
           <CaregiverView
@@ -395,6 +403,7 @@ export default function CareCircleApp() {
         appointments={appointments}
         onTakeDose={handleTakeDose}
         onTriggerSos={handleConfirmSos}
+        selectedLanguage={selectedLanguage}
       />
 
       <EmailInspectorModal

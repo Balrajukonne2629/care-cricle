@@ -121,18 +121,18 @@ export default function EmergencyModal({
           {/* Direct Phone Dial Quick Action */}
           <div className="grid grid-cols-2 gap-3">
             <a
-              href="tel:911"
+              href="tel:108"
               className="py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm flex items-center justify-center space-x-2 transition"
             >
               <Phone className="w-4 h-4 text-rose-400" />
-              <span>Dial 911</span>
+              <span>Dial 108 (Ambulance)</span>
             </a>
             <a
               href={`tel:${circleMembers[0]?.phone}`}
               className="py-3 px-4 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm flex items-center justify-center space-x-2 transition"
             >
               <Phone className="w-4 h-4" />
-              <span>Call Sarah ({circleMembers[0]?.name.split(' ')[0]})</span>
+              <span>Call Rajesh ({circleMembers[0]?.name.split(' ')[0]})</span>
             </a>
           </div>
 
