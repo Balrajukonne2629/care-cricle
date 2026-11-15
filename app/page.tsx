@@ -354,6 +354,24 @@ export default function CareCircleApp() {
         onSelectLanguage={lang => {
           setSelectedLanguage(lang);
           SpeechService.setLanguage(lang);
+
+          let confirmationText = 'English selected';
+          let phoneticFallback: string | undefined = undefined;
+          if (lang === 'te') {
+            confirmationText = 'తెలుగు ఎంపిక చేయబడింది';
+            phoneticFallback = 'Telugu bhasha select chesaru';
+          } else if (lang === 'hi') {
+            confirmationText = 'हिन्दी भाषा चुनी गई';
+          } else if (lang === 'ta') {
+            confirmationText = 'தமிழ் தேர்ந்தெடுக்கப்பட்டது';
+            phoneticFallback = 'Tamil mozhi thervu seyyappattathu';
+          }
+
+          SpeechService.speak(confirmationText, {
+            lang,
+            phoneticFallbackText: phoneticFallback,
+            rate: 0.92,
+          });
         }}
       />
 

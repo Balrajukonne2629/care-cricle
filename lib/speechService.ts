@@ -1,7 +1,10 @@
 /**
  * Browser Web Speech API service for CareCircle
- * Provides tactile, warm Text-to-Speech (TTS) in Indian Native Languages
+ * Provides calm, natural Text-to-Speech (TTS) in Indian Native Languages
  * (Hindi, Telugu, Tamil, Indian English) and multilingual intent recognition.
+ * 
+ * Includes intelligent voice matching prioritizing high-clarity Natural / Neural voices
+ * and seamless phonetic fallback for browsers lacking native Telugu/Tamil speech engines.
  */
 
 import { NativeLanguage } from './types';
@@ -19,9 +22,12 @@ const isBrowser = typeof window !== 'undefined';
 export class SpeechService {
   private static synth: SpeechSynthesis | null = isBrowser && 'speechSynthesis' in window ? window.speechSynthesis : null;
   private static currentLang: NativeLanguage = 'en';
+  private static cachedVoices: SpeechSynthesisVoice[] = [];
+  private static isInitialized = false;
 
   public static setLanguage(lang: NativeLanguage): void {
     this.currentLang = lang;
+    this.stop();
   }
 
   public static getLanguage(): NativeLanguage {
@@ -29,23 +35,129 @@ export class SpeechService {
   }
 
   public static initVoice(): void {
-    if (!this.synth) return;
-    // Pre-warm voices
-    this.synth.getVoices();
+    if (!this.synth || this.isInitialized) return;
+    this.isInitialized = true;
+
+    const loadVoices = () => {
+      if (!this.synth) return;
+      const voices = this.synth.getVoices();
+      if (voices && voices.length > 0) {
+        this.cachedVoices = voices;
+      }
+    };
+
+    loadVoices();
     if (this.synth.onvoiceschanged !== undefined) {
-      this.synth.onvoiceschanged = () => {
-        this.synth?.getVoices();
-      };
+      this.synth.onvoiceschanged = loadVoices;
     }
   }
 
+  private static getAvailableVoices(): SpeechSynthesisVoice[] {
+    if (this.cachedVoices.length > 0) return this.cachedVoices;
+    if (this.synth) {
+      this.cachedVoices = this.synth.getVoices() || [];
+    }
+    return this.cachedVoices;
+  }
+
   /**
-   * Speak a text string with comfortable, calm cadence in chosen Indian language
+   * Selects the highest quality natural voice for a language.
+   * Priority: Natural / Neural / Online > Google > Language match.
+   * If a browser lacks a native engine (e.g. Chrome on Windows without Telugu TTS),
+   * returns isNative = false so caller can use phonetic Indian English speech.
+   */
+  public static selectBestVoice(targetLang: NativeLanguage): {
+    voice: SpeechSynthesisVoice | null;
+    isNative: boolean;
+    speechLang: string;
+  } {
+    const voices = this.getAvailableVoices();
+    if (!voices || voices.length === 0) {
+      return {
+        voice: null,
+        isNative: false,
+        speechLang: targetLang === 'hi' ? 'hi-IN' : targetLang === 'te' ? 'te-IN' : targetLang === 'ta' ? 'ta-IN' : 'en-IN',
+      };
+    }
+
+    const langCode = targetLang === 'hi' ? 'hi' : targetLang === 'te' ? 'te' : targetLang === 'ta' ? 'ta' : 'en';
+
+    // 1. Search for native voices matching the language code (e.g., te-IN, hi-IN)
+    const nativeMatches = voices.filter(v => {
+      const vLang = (v.lang || '').replace('_', '-').toLowerCase();
+      const vName = (v.name || '').toLowerCase();
+      return vLang.startsWith(langCode) || vName.includes(
+        targetLang === 'te' ? 'telugu' : targetLang === 'hi' ? 'hindi' : targetLang === 'ta' ? 'tamil' : 'english'
+      );
+    });
+
+    if (nativeMatches.length > 0) {
+      // Pick best quality (Natural/Online > Google > first available)
+      const best = nativeMatches.find(v => v.name.includes('Natural') || v.name.includes('Online'))
+        || nativeMatches.find(v => v.name.includes('Google'))
+        || nativeMatches[0];
+
+      return {
+        voice: best,
+        isNative: true,
+        speechLang: best.lang || `${langCode}-IN`,
+      };
+    }
+
+    // 2. Fallback for Telugu / Tamil when browser does NOT bundle that voice:
+    // Route to Indian English voice (en-IN) to prevent Chrome from defaulting to Hindi!
+    const indianEnglishVoices = voices.filter(v => {
+      const vLang = (v.lang || '').replace('_', '-').toLowerCase();
+      const vName = (v.name || '').toLowerCase();
+      return (
+        vLang === 'en-in' ||
+        vName.includes('india') ||
+        vName.includes('neerja') ||
+        vName.includes('prabhat') ||
+        vName.includes('heera')
+      );
+    });
+
+    if (indianEnglishVoices.length > 0) {
+      const bestInEn = indianEnglishVoices.find(v => v.name.includes('Natural') || v.name.includes('Online'))
+        || indianEnglishVoices.find(v => v.name.includes('Google'))
+        || indianEnglishVoices[0];
+
+      return {
+        voice: bestInEn,
+        isNative: false,
+        speechLang: 'en-IN',
+      };
+    }
+
+    // 3. Fallback to any Natural / High-quality English voice
+    const naturalEnglish = voices.find(v => (v.lang || '').startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google')));
+    if (naturalEnglish) {
+      return {
+        voice: naturalEnglish,
+        isNative: false,
+        speechLang: naturalEnglish.lang || 'en-US',
+      };
+    }
+
+    // 4. Default voice
+    const defaultVoice = voices.find(v => (v.lang || '').startsWith('en')) || voices[0];
+    return {
+      voice: defaultVoice || null,
+      isNative: false,
+      speechLang: defaultVoice?.lang || 'en-US',
+    };
+  }
+
+  /**
+   * Speak a text string with comfortable, natural cadence in chosen Indian language.
+   * Supports an optional phoneticFallbackText for when browser lacks native Telugu/Tamil TTS.
    */
   public static speak(
     text: string,
     options: {
       lang?: NativeLanguage;
+      phoneticFallbackText?: string;
       rate?: number;
       pitch?: number;
       volume?: number;
@@ -54,35 +166,33 @@ export class SpeechService {
   ): Promise<void> {
     return new Promise((resolve) => {
       if (!this.synth) {
-        console.warn('Speech synthesis not supported in this environment');
+        options.onEnd?.();
         resolve();
         return;
       }
 
-      this.synth.cancel(); // Stop any overlapping audio
+      this.stop(); // Stop any currently playing audio
 
       const targetLang = options.lang || this.currentLang;
-      const utterance = new SpeechSynthesisUtterance(text);
+      const { voice, isNative, speechLang } = this.selectBestVoice(targetLang);
 
-      // Map language code to BCP-47
-      const langLocaleMap: Record<NativeLanguage, string> = {
-        hi: 'hi-IN',
-        te: 'te-IN',
-        ta: 'ta-IN',
-        en: 'en-IN',
-      };
+      // If language is Telugu or Tamil and no native engine exists in browser,
+      // use phonetic Indian English speech rather than letting Chrome read Telugu with Hindi/gibberish voice
+      let utteranceText = text;
+      if (!isNative && (targetLang === 'te' || targetLang === 'ta') && options.phoneticFallbackText) {
+        utteranceText = options.phoneticFallbackText;
+      }
 
-      utterance.lang = langLocaleMap[targetLang] || 'en-IN';
-      utterance.rate = options.rate ?? 0.84; // Slower, clear pace for elderly comprehension
+      const utterance = new SpeechSynthesisUtterance(utteranceText);
+      utterance.lang = speechLang;
+      if (voice) {
+        utterance.voice = voice;
+      }
+
+      // Natural, calm rate (0.88 - 0.92 sounds human, not rushed or robotic)
+      utterance.rate = options.rate ?? (isNative ? 0.88 : 0.90);
       utterance.pitch = options.pitch ?? 1.0;
       utterance.volume = options.volume ?? 1.0;
-
-      // Select language-appropriate voice
-      const voices = this.synth.getVoices();
-      const matchingVoice = voices.find(v => v.lang.replace('_', '-').startsWith(utterance.lang.slice(0, 2)));
-      if (matchingVoice) {
-        utterance.voice = matchingVoice;
-      }
 
       utterance.onend = () => {
         options.onEnd?.();
@@ -90,7 +200,8 @@ export class SpeechService {
       };
 
       utterance.onerror = (e) => {
-        console.warn('TTS notice:', e);
+        console.warn('SpeechSynthesis notice:', e);
+        options.onEnd?.();
         resolve();
       };
 

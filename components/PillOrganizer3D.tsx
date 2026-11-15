@@ -2,30 +2,30 @@
 
 import React, { useState } from 'react';
 import { Medication } from '@/lib/types';
-import PillVisual3D from './PillVisual3D';
-import { Check, Clock, ChevronRight, Sparkles } from 'lucide-react';
+import { Calendar, CheckCircle2, Clock, ShieldCheck, Stethoscope } from 'lucide-react';
 import SoundService from '@/lib/soundService';
 
-interface PillOrganizer3DProps {
+interface PillOrganizerProps {
   medications: Medication[];
   onSelectSlot?: (day: string, slot: string) => void;
   activeSlotName?: string;
 }
 
+/**
+ * Clinical Weekly Prescription Schedule & Bedside Dispenser Strip
+ * Professional, calm, healthcare-grade presentation inspired by modern clinical dashboards.
+ */
 export default function PillOrganizer3D({
   medications,
   onSelectSlot,
   activeSlotName = 'Morning',
-}: PillOrganizer3DProps) {
+}: PillOrganizerProps) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const todayIndex = (new Date().getDay() + 6) % 7; // 0 = Mon, 6 = Sun
   const [selectedDay, setSelectedDay] = useState<string>(days[todayIndex]);
 
-  const slots = [
-    { id: 'Morning', label: 'AM', icon: '🌅', color: 'text-amber-600' },
-    { id: 'Afternoon', label: 'Noon', icon: '☀️', color: 'text-sky-600' },
-    { id: 'Evening', label: 'PM', icon: '🌙', color: 'text-indigo-600' },
-  ];
+  // Compute total pills today
+  const totalMedsToday = medications.filter(m => m.isActive).length;
 
   const handleDayClick = (day: string) => {
     SoundService.playTap();
@@ -33,131 +33,82 @@ export default function PillOrganizer3D({
   };
 
   return (
-    <div className="bg-gradient-to-b from-slate-50 to-slate-100/80 rounded-3xl p-5 border border-slate-200/90 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-        <div>
-          <div className="flex items-center space-x-2">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" />
-            <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
-              <span>Smart Weekly Pill Dispenser</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">
-                Connected Box
+    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-sm">
+      {/* Clinical Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-slate-100 gap-3">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-800">
+            <Calendar className="w-5 h-5 text-emerald-700" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <span>Weekly Prescription Schedule</span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                Dr. K. S. Rao • Apollo Cardiology
               </span>
             </h3>
+            <p className="text-xs text-slate-500">
+              Synchronized with physical bedside organizer & hospital care plan.
+            </p>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Physical compartment view matching your bedside organizer.
-          </p>
         </div>
 
-        <div className="flex items-center space-x-2 text-xs font-semibold text-slate-600">
-          <span className="flex items-center space-x-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
-            <span>Dispensed</span>
+        {/* Adherence Telemetry Status */}
+        <div className="flex items-center space-x-3 text-xs font-medium text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+          <span className="flex items-center space-x-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" />
+            <span className="font-semibold text-slate-800">94% 7-Day Adherence</span>
           </span>
-          <span className="flex items-center space-x-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
-            <span>Ready</span>
-          </span>
+          <span className="text-slate-300">|</span>
+          <span className="text-slate-600">{totalMedsToday} Active Prescriptions</span>
         </div>
       </div>
 
-      {/* 7-Day Acrylic Grid */}
-      <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+      {/* 7-Day Clean Treatment Strip */}
+      <div className="grid grid-cols-7 gap-2">
         {days.map((day, idx) => {
           const isToday = idx === todayIndex;
           const isSelected = selectedDay === day;
+          const isPast = idx < todayIndex;
 
           return (
             <button
               key={day}
               onClick={() => handleDayClick(day)}
-              className={`flex flex-col rounded-2xl p-1.5 sm:p-2 border transition relative text-left active:scale-95 ${
+              className={`flex flex-col items-center justify-center py-3 px-1 rounded-xl border transition-all text-center ${
                 isSelected
-                  ? 'bg-white ring-2 ring-emerald-600 border-emerald-500 shadow-md'
+                  ? 'bg-emerald-800 text-white border-emerald-900 shadow-sm'
                   : isToday
-                  ? 'bg-amber-50/70 border-amber-300'
-                  : 'bg-slate-50 border-slate-200/80 hover:bg-white'
+                  ? 'bg-emerald-50/70 border-emerald-300 text-slate-900'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
-              {/* Day Header */}
-              <div className="flex items-center justify-between border-b border-slate-200/60 pb-1 mb-1.5">
-                <span className={`text-[11px] sm:text-xs font-extrabold ${isToday ? 'text-amber-800' : 'text-slate-700'}`}>
-                  {day}
-                </span>
-                {isToday && (
-                  <span className="text-[9px] px-1 rounded bg-amber-200 text-amber-900 font-bold uppercase">
+              <span className={`text-[11px] font-bold uppercase tracking-wider ${isSelected ? 'text-emerald-200' : 'text-slate-400'}`}>
+                {day}
+              </span>
+              <span className={`text-base font-extrabold my-0.5 ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                {idx + 10}
+              </span>
+
+              {/* Status Indicator */}
+              <div className="mt-1">
+                {isPast ? (
+                  <span className={`text-[10px] font-semibold flex items-center ${isSelected ? 'text-emerald-200' : 'text-emerald-700'}`}>
+                    <CheckCircle2 className="w-3 h-3 mr-0.5" /> Done
+                  </span>
+                ) : isToday ? (
+                  <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${isSelected ? 'bg-emerald-700 text-white' : 'bg-amber-100 text-amber-900'}`}>
                     Today
                   </span>
+                ) : (
+                  <span className={`text-[10px] font-medium ${isSelected ? 'text-emerald-300' : 'text-slate-400'}`}>
+                    Due
+                  </span>
                 )}
-              </div>
-
-              {/* 3 Physical Time Slots inside each compartment */}
-              <div className="space-y-1">
-                {slots.map(slot => {
-                  const slotMeds = medications.filter(m =>
-                    m.schedules.some(s => s.label.toLowerCase() === slot.id.toLowerCase())
-                  );
-
-                  // Mock status: if past today or taken today
-                  const isCompleted = isToday
-                    ? slotMeds.every(m =>
-                        m.schedules.some(s => s.label.toLowerCase() === slot.id.toLowerCase() && s.doseTakenToday)
-                      ) && slotMeds.length > 0
-                    : idx < todayIndex;
-
-                  return (
-                    <div
-                      key={slot.id}
-                      className={`acrylic-compartment rounded-lg p-1 min-h-[38px] sm:min-h-[44px] flex flex-col justify-between transition ${
-                        isCompleted ? 'bg-emerald-50/80 border-emerald-300/60' : ''
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-[9px] font-bold text-slate-500">{slot.label}</span>
-                        {isCompleted ? (
-                          <Check className="w-3 h-3 text-emerald-600" />
-                        ) : slotMeds.length > 0 ? (
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                        ) : null}
-                      </div>
-
-                      {/* Mini pill icons inside compartment */}
-                      <div className="flex flex-wrap gap-0.5 justify-center mt-0.5">
-                        {slotMeds.slice(0, 3).map(m => (
-                          <div key={m.id} className="scale-75 origin-center transform">
-                            <PillVisual3D
-                              shape={m.pillShape}
-                              color={m.pillColor}
-                              size="sm"
-                              dosage={m.dosage}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             </button>
           );
         })}
-      </div>
-
-      {/* Selected Day Expanded Detail Drawer */}
-      <div className="mt-4 pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-600 gap-2">
-        <div className="flex items-center space-x-2">
-          <span className="font-extrabold text-slate-800">
-            {selectedDay} Compartment:
-          </span>
-          <span>
-            {medications.length} prescribed doses loaded into electronic blister cells.
-          </span>
-        </div>
-        <div className="flex items-center space-x-1.5 text-emerald-700 font-bold">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>Automated tamper-evident closure verified</span>
-        </div>
       </div>
     </div>
   );

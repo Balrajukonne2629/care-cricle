@@ -158,6 +158,7 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     visualTagTelugu: 'గులాబీ గుండ్రని బిళ్ళ (బి.పి. మందు)',
     voiceDescriptionHindi: 'यह सुबह की गुलाबी गोली है, टेल्मा 40. बीपी नियंत्रण के लिए नाश्ते के बाद एक गिलास पानी के साथ लें।',
     voiceDescriptionTelugu: 'ఇది ఉదయం వేసుకునే గులాబీ బిళ్ళ, టెల్మా 40. బి.పి. కంట్రోల్ కోసం టిఫిన్ తర్వాత తీసుకోండి.',
+    voiceDescriptionTeluguPhonetic: 'Namaskaram Lakshmi Amma. Idi udayam vesukune gulabi goli, Telma 40. BP control kosam tiffin tharuvatha oka glass neellatho teesukondi.',
     voiceDescriptionEnglish: 'This is your morning pink round pill, Telma 40, for blood pressure. Take after breakfast with water.',
   },
   {
@@ -188,6 +189,7 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     visualTagTelugu: 'పసుపు క్యాప్సూల్ (ఖాళీ కడుపున గ్యాస్ మందు)',
     voiceDescriptionHindi: 'यह पीले रंग का कैप्सूल पैन-डी है। सुबह खाली पेट चाय-नाश्ते से आधा घंटा पहले लें।',
     voiceDescriptionTelugu: 'ఇది పసుపు క్యాప్సూల్ పాన్-డి. ఉదయం టిఫిన్ కంటే అరగంట ముందు ఖాళీ కడుపుతో వేసుకోండి.',
+    voiceDescriptionTeluguPhonetic: 'Idi pasupu capsule Pan-D. Udayam tiffin kante 30 nimishala mundhu khali kadupulo teesukondi.',
     voiceDescriptionEnglish: 'This is Pan-D capsule for acidity. Take early morning on an empty stomach 30 minutes before breakfast.',
   },
   {
@@ -219,6 +221,7 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     visualTagTelugu: 'తెల్లని పొడవాటి బిళ్ళ (షుగర్ మందు)',
     voiceDescriptionHindi: 'यह सफेद रंग की लंबी गोली ग्लाइकोमेट है। शुगर कंट्रोल के लिए नाश्ते और रात के खाने के तुरंत बाद लें।',
     voiceDescriptionTelugu: 'ఇది తెల్లటి పొడవాటి బిళ్ళ గ్లైకోమెట్. షుగర్ కోసం టిఫిన్ మరియు రాత్రి భోజనం తర్వాత తీసుకోండి.',
+    voiceDescriptionTeluguPhonetic: 'Idi thellati podavati goli Glycomet 500. Sugar control kosam tiffin mariyu rathri bhojanam tharuvatha teesukondi.',
     voiceDescriptionEnglish: 'This is Glycomet 500mg white oval tablet for diabetes. Take immediately after meals.',
   },
   {
@@ -249,6 +252,7 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     visualTagTelugu: 'బంగారు రంగు గుండ్రని బిళ్ళ (కొలెస్ట్రాల్ మందు)',
     voiceDescriptionHindi: 'यह सुनहरे रंग की गोल गोली रोसुवास 10 है। कोलेस्ट्रॉल के लिए रात को सोने से पहले लें। ध्यान दें, यह दवा सिर्फ 4 बची है।',
     voiceDescriptionTelugu: 'ఇది బంగారు రంగు గుండ్రని బిళ్ళ రోసువాస్ 10. కొలెస్ట్రాల్ కోసం రాత్రి పడుకునే ముందు వేసుకోండి. ఈ మందు 4 మాత్రమే మిగిలి ఉన్నాయి.',
+    voiceDescriptionTeluguPhonetic: 'Idi bangaru rangu gundrati goli Rosuvas 10. Cholesterol kosam rathri padukune mundhu teesukondi. Ee mandu 4 mathrame migili unnayi.',
     voiceDescriptionEnglish: 'This is Rosuvas 10 gold round pill for cholesterol. Take at bedtime. Note: Only 4 pills remaining.',
   },
   {
@@ -279,6 +283,7 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     visualTagTelugu: 'చిన్న పసుపు బిళ్ళ (రక్తం పలుచబడే మందు)',
     voiceDescriptionHindi: 'यह दोपहर की छोटी पीली गोली इकोस्प्रिन है। दोपहर के भोजन के बाद लें। यह खून को सामान्य और पतला रखती है।',
     voiceDescriptionTelugu: 'ఇది మధ్యాహ్నం భోజనం తర్వాత వేసుకునే చిన్న పసుపు బిళ్ళ ఎకోస్ప్రిన్. రక్తం గడ్డకట్టకుండా కాపాడుతుంది.',
+    voiceDescriptionTeluguPhonetic: 'Idi madhyahnam bhojanam tharuvatha vesukune chinna pasupu goli Ecosprin 75. Raktham gaddakattakunda kapaduthundi.',
     voiceDescriptionEnglish: 'This is small gold pill Ecosprin 75mg. Take after lunch with water for heart protection.',
   },
   {
@@ -308,6 +313,7 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     visualTagTelugu: 'లేత ఆకుపచ్చ పెద్ద బిళ్ళ (ఎముకల బలం కోసం)',
     voiceDescriptionHindi: 'यह हल्की हरी लंबी गोली शेलकल 500 है। हड्डियों और घुटनों की मजबूती के लिए दोपहर खाने के बाद दूध या पानी से लें।',
     voiceDescriptionTelugu: 'ఇది లేత ఆకుపచ్చ పొడవాటి బిళ్ళ షెల్కల్ 500. ఎముకల బలం కోసం మధ్యాహ్నం భోజనం తర్వాత తీసుకోండి.',
+    voiceDescriptionTeluguPhonetic: 'Idi leta aakupacha podavati goli Shelcal 500. Yemukala balam kosam madhyahnam bhojanam tharuvatha teesukondi.',
     voiceDescriptionEnglish: 'This is Shelcal 500 mint oval tablet for bone strength. Take after lunch with water or milk.',
   },
 ];

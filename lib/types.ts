@@ -97,7 +97,9 @@ export interface Medication {
   visualTagTelugu?: string;
   voiceDescriptionHindi?: string;
   voiceDescriptionTelugu?: string;
+  voiceDescriptionTeluguPhonetic?: string;
   voiceDescriptionTamil?: string;
+  voiceDescriptionTamilPhonetic?: string;
   voiceDescriptionEnglish?: string;
 }
 

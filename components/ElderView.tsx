@@ -7,11 +7,9 @@ import {
   Volume2,
   Clock,
   AlertCircle,
-  Sparkles,
   ShieldAlert,
   Mic,
   Calendar,
-  Info,
   Heart,
   Droplets,
   Utensils,
@@ -23,6 +21,9 @@ import {
   Activity,
   Check,
   Flame,
+  Stethoscope,
+  HeartPulse,
+  UserCheck,
 } from 'lucide-react';
 import { Medication, ElderProfile, VitalSign, NativeLanguage } from '@/lib/types';
 import { SpeechService } from '@/lib/speechService';
@@ -80,35 +81,168 @@ export default function ElderView({
   const textBodyClass =
     fontSize === 'extra-large' ? 'text-xl' : fontSize === 'large' ? 'text-lg' : 'text-base';
 
-  // Localized greetings
-  const greetingText: Record<NativeLanguage, { greeting: string; familyNote: string; speakBtn: string; readAllBtn: string }> = {
+  // Comprehensive localized UI text dictionary for ALL languages
+  const uiText: Record<
+    NativeLanguage,
+    {
+      greeting: string;
+      familyNote: string;
+      speakBtn: string;
+      readAllBtn: string;
+      readingBtn: string;
+      wellbeingQuestion: string;
+      wellbeingUpdated: string;
+      routineTitle: string;
+      listenBtn: string;
+      speakingBtn: string;
+      markTakenBtn: string;
+      takenBadge: string;
+      waterNote: string;
+      viewDetails: string;
+      allDoneForSlot: string;
+      noPendingSlot: string;
+      sosTitle: string;
+      sosSub: string;
+      sosBtn: string;
+      slots: Record<string, { label: string; time: string }>;
+      moods: { id: string; label: string; sub: string }[];
+    }
+  > = {
     hi: {
-      greeting: `नमस्ते, ${elder.preferredName}! 🌸`,
-      familyNote: 'आपके सुपुत्र राजेश और सिस्टर कविता आपकी देखभाल से जुड़े हैं।',
+      greeting: `नमस्ते, ${elder.preferredName}`,
+      familyNote: 'सुपुत्र राजेश (हाइटेक सिटी) और सिस्टर कविता (अपोलो होमकेयर) आपकी देखभाल से जुड़े हैं।',
       speakBtn: 'माइक दबाकर बोलें',
       readAllBtn: 'पूरी दिनचर्या सुनें',
+      readingBtn: 'सुना रहे हैं...',
+      wellbeingQuestion: 'अम्मा, आप अभी कैसा महसूस कर रही हैं?',
+      wellbeingUpdated: 'राजेश को सूचना भेज दी गई है',
+      routineTitle: 'आज की दवाइयां (Daily Schedule)',
+      listenBtn: 'दवा सुनो',
+      speakingBtn: 'सुना रहे हैं...',
+      markTakenBtn: 'मैंने दवा ले ली',
+      takenBadge: 'ले ली (Taken)',
+      waterNote: 'ताज़ा पानी के साथ',
+      viewDetails: 'दवा विवरण',
+      allDoneForSlot: 'इस समय की सभी दवाइयां पूरी हैं!',
+      noPendingSlot: 'इस समय कोई दवा बाकी नहीं है। आराम करें।',
+      sosTitle: 'आपातकालीन सहायता (Emergency SOS)',
+      sosSub: 'लाल बटन दबाने पर राजेश, सिस्टर कविता और अपोलो इमरजेंसी को तुरंत सूचना भेजी जाएगी।',
+      sosBtn: 'आपातकाल SOS',
+      slots: {
+        Morning: { label: 'सुबह (Morning)', time: '08:00 AM' },
+        Afternoon: { label: 'दोपहर (Noon)', time: '01:30 PM' },
+        Evening: { label: 'शाम (Evening)', time: '07:30 PM' },
+        'As Needed': { label: 'रात (Bedtime)', time: '09:30 PM' },
+      },
+      moods: [
+        { id: 'great', label: 'बहुत अच्छा', sub: 'ऊर्जावान और सामान्य' },
+        { id: 'okay', label: 'बिल्कुल ठीक', sub: 'दैनिक दिनचर्या ठीक है' },
+        { id: 'tired', label: 'थोड़ी थकान', sub: 'विश्राम की आवश्यकता' },
+        { id: 'help', label: 'सहायता चाहिए', sub: 'केयरगिवर को बुलाएं' },
+      ],
     },
     te: {
-      greeting: `నమస్కారం, ${elder.preferredName}! 🌸`,
-      familyNote: 'మీ కుమారుడు రాజేష్ మరియు సిస్టర్ కవిత మీ ఆరోగ్యాన్ని గమనిస్తున్నారు.',
-      speakBtn: 'మాట్లాడటానికి నొక్కండి',
+      greeting: `నమస్కారం, ${elder.preferredName}`,
+      familyNote: 'మీ కుమారుడు రాజేష్ మరియు సిస్టర్ కవిత మీ ఆరోగ్యాన్ని పర్యవేక్షిస్తున్నారు.',
+      speakBtn: 'వాయిస్ సహాయం',
       readAllBtn: 'మొత్తం మందులు వినండి',
+      readingBtn: 'వినిపిస్తోంది...',
+      wellbeingQuestion: 'లక్ష్మి అమ్మా, మీరు ఇప్పుడు ఎలా ఉన్నారు?',
+      wellbeingUpdated: 'రాజేష్ గారికి సమాచారం చేరింది',
+      routineTitle: 'ఈ రోజు మందుల పట్టిక (Daily Routine)',
+      listenBtn: 'మందు వినండి',
+      speakingBtn: 'వినిపిస్తోంది...',
+      markTakenBtn: 'మందు తీసుకున్నాను',
+      takenBadge: 'తీసుకున్నారు (Taken)',
+      waterNote: 'మంచినీళ్లతో',
+      viewDetails: 'వివరాలు',
+      allDoneForSlot: 'ఈ సమయానికి మందులు పూర్తయ్యాయి!',
+      noPendingSlot: 'ఈ సమయానికి ఏ మందులు లేవు. విశ్రాంతి తీసుకోండి.',
+      sosTitle: 'అత్యవసర సహాయం (Emergency SOS)',
+      sosSub: 'ఈ బటన్ నొక్కితే కుమారుడు రాజేష్ మరియు అపోలో ఎమర్జెన్సీకి వెంటనే సమాచారం వెళ్తుంది.',
+      sosBtn: 'అత్యవసర SOS',
+      slots: {
+        Morning: { label: 'ఉదయం (Morning)', time: '08:00 AM' },
+        Afternoon: { label: 'మధ్యాహ్నం (Noon)', time: '01:30 PM' },
+        Evening: { label: 'సాయంత్రం (Evening)', time: '07:30 PM' },
+        'As Needed': { label: 'రాత్రి (Bedtime)', time: '09:30 PM' },
+      },
+      moods: [
+        { id: 'great', label: 'చాలా బాగున్నా', sub: 'ఆరోగ్యంగా ఉన్నాను' },
+        { id: 'okay', label: 'బాగున్నాను', sub: 'సాధారణంగా ఉంది' },
+        { id: 'tired', label: 'కొద్దిగా అలసట', sub: 'విశ్రాంతి అవసరం' },
+        { id: 'help', label: 'సహాయం కావాలి', sub: 'కేర్‌గివర్‌ని పిలవండి' },
+      ],
     },
     ta: {
-      greeting: `வணக்கம், ${elder.preferredName}! 🌸`,
+      greeting: `வணக்கம், ${elder.preferredName}`,
       familyNote: 'உங்கள் மகன் ராஜேஷ் மற்றும் செவிலியர் கவிதா உங்களுடன் தொடர்பில் உள்ளனர்.',
-      speakBtn: 'பேச அழுத்தவும்',
-      readAllBtn: 'அட்டவணையை கேளுங்கள்',
+      speakBtn: 'குரல் உதவி',
+      readAllBtn: 'மருந்துகளைக் கேளுங்கள்',
+      readingBtn: 'ஒலிக்கிறது...',
+      wellbeingQuestion: 'அம்மா, இப்போது உங்கள் உடல்நிலை எப்படி உள்ளது?',
+      wellbeingUpdated: 'ராஜேஷுக்கு தகவல் அனுப்பப்பட்டது',
+      routineTitle: 'இன்றைய மருந்துகள் (Daily Routine)',
+      listenBtn: 'கேளுங்கள்',
+      speakingBtn: 'ஒலிக்கிறது...',
+      markTakenBtn: 'மருந்து எடுத்தேன்',
+      takenBadge: 'எடுத்தாயிற்று (Taken)',
+      waterNote: 'குடிநீருடன்',
+      viewDetails: 'விவரங்கள்',
+      allDoneForSlot: 'இந்த நேர மருந்துகள் முடிந்தது!',
+      noPendingSlot: 'இப்போது மருந்துகள் எதுவும் இல்லை. ஓய்வெடுங்கள்.',
+      sosTitle: 'அவசர உதவி (Emergency SOS)',
+      sosSub: 'சிவப்பு பொத்தானை அழுத்தினால் ராஜேஷ், செவிலியர் மற்றும் மருத்துவமனைக்கு தகவல் செல்லும்.',
+      sosBtn: 'அவசர SOS',
+      slots: {
+        Morning: { label: 'காலை (Morning)', time: '08:00 AM' },
+        Afternoon: { label: 'மதியம் (Noon)', time: '01:30 PM' },
+        Evening: { label: 'மாலை (Evening)', time: '07:30 PM' },
+        'As Needed': { label: 'இரவு (Bedtime)', time: '09:30 PM' },
+      },
+      moods: [
+        { id: 'great', label: 'மிகவும் நன்று', sub: 'ஆரோக்கியமாக உள்ளேன்' },
+        { id: 'okay', label: 'நன்றாக உள்ளது', sub: 'வழக்கமான நிலை' },
+        { id: 'tired', label: 'சிறிது சோர்வு', sub: 'ஓய்வு தேவை' },
+        { id: 'help', label: 'உதவி தேவை', sub: 'குடும்பத்தினரை அழையுங்கள்' },
+      ],
     },
     en: {
-      greeting: `Namaste, ${elder.preferredName}! 🌸`,
-      familyNote: 'Your son Rajesh and Nurse Sister Kavitha are actively connected today.',
-      speakBtn: 'Tap to Speak',
+      greeting: `Namaste, ${elder.preferredName}`,
+      familyNote: 'Your son Rajesh (HITEC City) and Nurse Sister Kavitha (Apollo HomeCare) are actively connected.',
+      speakBtn: 'Voice Assistant',
       readAllBtn: 'Read Routine Aloud',
+      readingBtn: 'Reading Aloud...',
+      wellbeingQuestion: `How are you feeling right now, ${elder.preferredName}?`,
+      wellbeingUpdated: 'Care circle notified in real time',
+      routineTitle: "Today's Medication Routine",
+      listenBtn: 'Listen',
+      speakingBtn: 'Speaking...',
+      markTakenBtn: 'Mark as Taken',
+      takenBadge: 'Taken',
+      waterNote: 'With fresh water',
+      viewDetails: 'Details',
+      allDoneForSlot: 'All Scheduled Doses Completed!',
+      noPendingSlot: 'No scheduled medications for this window. Have a restful time.',
+      sosTitle: 'Emergency SOS Assistance',
+      sosSub: 'Instantly alerts son Rajesh, Sister Kavitha, and Apollo Hospitals Emergency Dispatch.',
+      sosBtn: 'Emergency SOS',
+      slots: {
+        Morning: { label: 'Morning', time: '08:00 AM' },
+        Afternoon: { label: 'Afternoon', time: '01:30 PM' },
+        Evening: { label: 'Evening', time: '07:30 PM' },
+        'As Needed': { label: 'Bedtime', time: '09:30 PM' },
+      },
+      moods: [
+        { id: 'great', label: 'Feeling Great', sub: 'Energetic & comfortable' },
+        { id: 'okay', label: 'Feeling Okay', sub: 'Normal daily routine' },
+        { id: 'tired', label: 'Mild Fatigue', sub: 'Extra rest recommended' },
+        { id: 'help', label: 'Need Assistance', sub: 'Alert care circle' },
+      ],
     },
   };
 
-  const currentStrings = greetingText[selectedLanguage] || greetingText.en;
+  const currentStrings = uiText[selectedLanguage] || uiText.en;
 
   // Speak single pill details aloud in native language
   const handleSpeakPill = async (med: Medication) => {
@@ -116,23 +250,28 @@ export default function ElderView({
     setSpeakingPillId(med.id);
 
     let textToSpeak = med.voiceDescriptionEnglish || `${med.name}. ${med.instructions}`;
+    let phoneticFallback: string | undefined = undefined;
+
     if (selectedLanguage === 'hi' && med.voiceDescriptionHindi) {
       textToSpeak = med.voiceDescriptionHindi;
-    } else if (selectedLanguage === 'te' && med.voiceDescriptionTelugu) {
-      textToSpeak = med.voiceDescriptionTelugu;
-    } else if (selectedLanguage === 'ta' && med.voiceDescriptionTamil) {
-      textToSpeak = med.voiceDescriptionTamil;
+    } else if (selectedLanguage === 'te') {
+      textToSpeak = med.voiceDescriptionTelugu || med.voiceDescriptionEnglish || `${med.name}. ${med.instructions}`;
+      phoneticFallback = med.voiceDescriptionTeluguPhonetic;
+    } else if (selectedLanguage === 'ta') {
+      textToSpeak = med.voiceDescriptionTamil || med.voiceDescriptionEnglish || `${med.name}. ${med.instructions}`;
+      phoneticFallback = med.voiceDescriptionTamilPhonetic;
     }
 
     await SpeechService.speak(textToSpeak, {
       lang: selectedLanguage,
-      rate: 0.84,
+      phoneticFallbackText: phoneticFallback,
+      rate: 0.88,
       onEnd: () => setSpeakingPillId(null),
     });
     setSpeakingPillId(null);
   };
 
-  // Read schedule aloud via Text-to-Speech in selected Indian language
+  // Read entire slot schedule aloud via Text-to-Speech
   const handleReadSchedule = async () => {
     SoundService.playTap();
     setIsReadingSpeech(true);
@@ -142,6 +281,8 @@ export default function ElderView({
     );
 
     let textToSpeak = '';
+    let phoneticFallback: string | undefined = undefined;
+
     if (selectedLanguage === 'hi') {
       textToSpeak = `नमस्ते लक्ष्मी अम्मा! आपके ${activeSlot === 'Morning' ? 'सुबह' : activeSlot === 'Afternoon' ? 'दोपहर' : 'शाम'} के समय `;
       if (slotMeds.length === 0) {
@@ -154,16 +295,13 @@ export default function ElderView({
         textToSpeak += 'दवा के साथ गुनगुना पानी जरूर पिएं।';
       }
     } else if (selectedLanguage === 'te') {
-      textToSpeak = `నమస్కారం లక్ష్మి అమ్మా! మీ ${activeSlot === 'Morning' ? 'ఉదయం' : activeSlot === 'Afternoon' ? 'మధ్యాహ్నం' : 'రాత్రి'} సమయానికి `;
-      if (slotMeds.length === 0) {
-        textToSpeak += 'ఏ మందులు లేవు. విశ్రాంతి తీసుకోండి!';
-      } else {
-        textToSpeak += `మొత్తం ${slotMeds.length} మందులు ఉన్నాయి. `;
-        slotMeds.forEach((m, idx) => {
-          textToSpeak += `మందు ${idx + 1}: ${m.name}, మోతాదు ${m.dosage}। ${m.instructions}। `;
-        });
-        textToSpeak += 'మంచినీళ్లు తాగడం మరచిపోకండి.';
-      }
+      textToSpeak = `నమస్కారం లక్ష్మి అమ్మా! మీ ${activeSlot === 'Morning' ? 'ఉదయం' : activeSlot === 'Afternoon' ? 'మధ్యాహ్నం' : 'రాత్రి'} సమయానికి ${slotMeds.length} మందులు ఉన్నాయి. ` +
+        slotMeds.map((m, idx) => `మందు ${idx + 1}: ${m.name}. ${m.instructions}.`).join(' ') +
+        ` మంచినీళ్లు తాగడం మరచిపోకండి.`;
+
+      phoneticFallback = `Namaskaram Lakshmi Amma! Mee ${activeSlot} schedule lo ${slotMeds.length} mandulu unnayi. ` +
+        slotMeds.map((m, idx) => `Goli ${idx + 1}: ${m.name}. ${m.instructions}.`).join(' ') +
+        ` Neellatho teesukondi.`;
     } else {
       textToSpeak = `Namaste ${elder.preferredName}. For your ${activeSlot} schedule, `;
       if (slotMeds.length === 0) {
@@ -179,7 +317,8 @@ export default function ElderView({
 
     await SpeechService.speak(textToSpeak, {
       lang: selectedLanguage,
-      rate: 0.84,
+      phoneticFallbackText: phoneticFallback,
+      rate: 0.88,
       onEnd: () => setIsReadingSpeech(false),
     });
     setIsReadingSpeech(false);
@@ -202,27 +341,25 @@ export default function ElderView({
     }
   };
 
-  // Mark dose as taken with confetti & audio chime
+  // Mark dose as taken with audio confirmation
   const handleMarkDose = async (medId: string, scheduledTime: string) => {
     SoundService.playPillTaken();
     await onTakeDose(medId, scheduledTime);
 
-    // Audio celebration confirmation in native language
-    const successMsg =
-      selectedLanguage === 'hi'
-        ? 'शाबाश अम्मा! आपने दवा ले ली है।'
-        : selectedLanguage === 'te'
-        ? 'చాలా మంచిది అమ్మా! మీరు మందు తీసుకున్నారు.'
-        : 'Very good! Medicine marked as taken.';
+    let successMsg = 'Very good! Medicine marked as taken.';
+    let phoneticFallback: string | undefined = undefined;
 
-    SpeechService.speak(successMsg, { lang: selectedLanguage, rate: 0.88 });
+    if (selectedLanguage === 'hi') {
+      successMsg = 'शाबाश अम्मा! आपने दवा ले ली है।';
+    } else if (selectedLanguage === 'te') {
+      successMsg = 'చాలా మంచిది అమ్మా! మీరు మందు తీసుకున్నారు.';
+      phoneticFallback = 'Chala manchidi Amma! Meeru mandu teesukunnaru.';
+    }
 
-    // Joyful celebratory confetti
-    confetti({
-      particleCount: 55,
-      spread: 75,
-      origin: { y: 0.65 },
-      colors: ['#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6'],
+    SpeechService.speak(successMsg, {
+      lang: selectedLanguage,
+      phoneticFallbackText: phoneticFallback,
+      rate: 0.88,
     });
   };
 
@@ -236,31 +373,29 @@ export default function ElderView({
   ).length;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-24 px-4 sm:px-6">
+    <div className="space-y-6 max-w-5xl mx-auto">
       {/* Detail Modal */}
       <MedicationDetailModal
         medication={selectedMedForDetail}
         onClose={() => setSelectedMedForDetail(null)}
       />
 
-      {/* Warm Elder Welcome & Telemetry Header */}
-      <section className="glass-panel-elevated rounded-3xl p-6 sm:p-8 border border-emerald-200/80 shadow-md relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-amber-100/40 via-emerald-100/30 to-transparent rounded-full blur-2xl pointer-events-none" />
-
+      {/* Dignified Clinical Elder Welcome & Caregiver Sync Header */}
+      <section className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-sm relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
           <div>
-            <div className="flex items-center space-x-2 text-emerald-800 font-bold mb-1 text-xs tracking-wider uppercase">
-              <Sun className="w-4 h-4 text-amber-500 animate-spin-slow" />
+            <div className="flex items-center space-x-2 text-slate-500 font-semibold mb-1 text-xs tracking-wider uppercase">
+              <Calendar className="w-3.5 h-3.5 text-emerald-700" />
               <span>
                 {new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric' })}
               </span>
-              <span className="text-slate-300">•</span>
-              <span className="text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full font-black">
-                {currentTimeStr || 'Morning'}
+              <span>•</span>
+              <span className="text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md font-bold">
+                {currentTimeStr || '08:00 AM'}
               </span>
             </div>
 
-            <h1 className={`${textTitleClass} font-black text-slate-900 tracking-tight`}>
+            <h1 className={`${textTitleClass} font-extrabold text-slate-900 tracking-tight`}>
               {currentStrings.greeting}
             </h1>
             <p className={`${textBodyClass} text-slate-600 mt-1 max-w-xl`}>
@@ -268,40 +403,40 @@ export default function ElderView({
             </p>
 
             <div className="flex items-center space-x-2 mt-3 text-xs text-slate-500">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+              <span className="flex h-2 w-2 rounded-full bg-emerald-600 inline-block" />
               <span className="font-semibold text-slate-700">
-                Rajesh checked in from office • All schedules synchronized
+                Rajesh connected from HITEC City • Sister Kavitha on call (Apollo HomeCare)
               </span>
             </div>
           </div>
 
-          {/* Large Action Buttons (Voice Mic + Read Aloud) */}
+          {/* Action Buttons: Voice Mic + Read Aloud */}
           <div className="flex flex-col sm:flex-row gap-2.5 shrink-0">
             <button
               onClick={onOpenVoiceAssistant}
-              className="btn-tactile flex items-center justify-center space-x-2.5 px-5 py-3.5 rounded-2xl bg-white hover:bg-emerald-50 text-emerald-900 font-extrabold border-2 border-emerald-300 shadow-sm transition active:scale-95"
+              className="flex items-center justify-center space-x-2 px-4 py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 shadow-sm transition active:scale-95"
             >
-              <Mic className="w-5 h-5 text-emerald-600 animate-pulse" />
-              <span className="text-base">{currentStrings.speakBtn}</span>
+              <Mic className="w-4 h-4 text-emerald-700 animate-pulse" />
+              <span className="text-sm">{currentStrings.speakBtn}</span>
             </button>
 
             <button
               onClick={handleReadSchedule}
               disabled={isReadingSpeech}
-              className={`btn-tactile flex items-center justify-center space-x-2 px-4 py-3.5 rounded-2xl font-extrabold border transition shadow-sm active:scale-95 ${
+              className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-bold border transition shadow-sm active:scale-95 ${
                 isReadingSpeech
-                  ? 'bg-amber-100 text-amber-900 border-amber-300 animate-pulse'
-                  : 'bg-emerald-700 hover:bg-emerald-800 text-white border-emerald-800'
+                  ? 'bg-amber-50 text-amber-900 border-amber-300 animate-pulse'
+                  : 'bg-emerald-800 hover:bg-emerald-900 text-white border-emerald-900'
               }`}
             >
-              <Volume2 className="w-5 h-5" />
-              <span className="text-sm">{isReadingSpeech ? 'सुना रहे हैं...' : currentStrings.readAllBtn}</span>
+              <Volume2 className="w-4 h-4" />
+              <span className="text-sm">{isReadingSpeech ? currentStrings.readingBtn : currentStrings.readAllBtn}</span>
             </button>
           </div>
         </div>
       </section>
 
-      {/* Smart Weekly Pill Dispenser */}
+      {/* Weekly Prescription Schedule Bar */}
       <PillOrganizer3D
         medications={medications}
         activeSlotName={activeSlot}
@@ -312,142 +447,102 @@ export default function ElderView({
         }}
       />
 
-      {/* Daily Wellbeing Mood Check-in in Native Language */}
-      <section className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <Heart className="w-5 h-5 text-rose-500 fill-rose-100" />
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
-              {selectedLanguage === 'hi'
-                ? `अम्मा, आप अभी कैसा महसूस कर रही हैं?`
-                : selectedLanguage === 'te'
-                ? `అమ్మా, మీరు ఇప్పుడు ఎలా ఉన్నారు?`
-                : `How are you feeling right now, ${elder.preferredName}?`}
-            </h2>
+      {/* Daily Clinical Wellbeing Check-in */}
+      <section className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2 pb-3 border-b border-slate-100">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-700">
+              <HeartPulse className="w-4 h-4 text-rose-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-900 tracking-tight">
+                {currentStrings.wellbeingQuestion}
+              </h2>
+              <p className="text-xs text-slate-500">
+                Recorded for Dr. K. S. Rao (Apollo Hospitals) & family visibility.
+              </p>
+            </div>
           </div>
           {wellbeingSubmitted && (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center space-x-1 border border-emerald-200">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 flex items-center space-x-1 border border-emerald-200 self-start sm:self-auto">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Rajesh ko update ho gaya</span>
+              <span>{currentStrings.wellbeingUpdated}</span>
             </span>
           )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            {
-              id: 'great',
-              emoji: '🌸',
-              labelHi: 'बहुत अच्छा',
-              labelTe: 'చాలా బాగున్నా',
-              labelEn: 'Feeling Great',
-              color: 'hover:border-emerald-400 bg-emerald-50/50',
-            },
-            {
-              id: 'okay',
-              emoji: '🌤️',
-              labelHi: 'बिल्कुल ठीक',
-              labelTe: 'బాగున్నాను',
-              labelEn: 'Feeling Okay',
-              color: 'hover:border-sky-400 bg-sky-50/50',
-            },
-            {
-              id: 'tired',
-              emoji: '☕',
-              labelHi: 'थोड़ी थकान',
-              labelTe: 'కొద్దిగా అలసట',
-              labelEn: 'A Bit Tired',
-              color: 'hover:border-amber-400 bg-amber-50/50',
-            },
-            {
-              id: 'help',
-              emoji: '💛',
-              labelHi: 'मदद चाहिए',
-              labelTe: 'సహాయం కావాలి',
-              labelEn: 'Need Extra Help',
-              color: 'hover:border-rose-400 bg-rose-50/50',
-            },
-          ].map(item => (
-            <button
-              key={item.id}
-              onClick={() => handleSelectMood(item.id)}
-              className={`p-4 rounded-2xl border-2 transition text-center flex flex-col items-center justify-center space-y-1.5 active:scale-95 ${
-                wellbeingMood === item.id
-                  ? 'border-emerald-600 bg-emerald-100/80 ring-2 ring-emerald-500/20 shadow-sm'
-                  : `border-slate-200/80 ${item.color}`
-              }`}
-            >
-              <span className="text-3xl">{item.emoji}</span>
-              <span className="font-extrabold text-slate-800 text-sm">
-                {selectedLanguage === 'hi' ? item.labelHi : selectedLanguage === 'te' ? item.labelTe : item.labelEn}
-              </span>
-            </button>
-          ))}
+          {currentStrings.moods.map(item => {
+            const isSelected = wellbeingMood === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleSelectMood(item.id)}
+                className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between space-y-1 ${
+                  isSelected
+                    ? 'border-emerald-800 bg-emerald-50/70 ring-1 ring-emerald-800 shadow-sm'
+                    : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 text-sm">{item.label}</span>
+                  {isSelected && <Check className="w-4 h-4 text-emerald-700 stroke-[3]" />}
+                </div>
+                <span className="text-[11px] text-slate-500">{item.sub}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
-      {/* Routine Time Slot Selector */}
+      {/* Routine Time Slot Selector & Pill Cards */}
       <section className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <h2 className="text-xl font-black text-slate-900 flex items-center space-x-2 tracking-tight">
-            <Clock className="w-5 h-5 text-emerald-600" />
-            <span>
-              {selectedLanguage === 'hi'
-                ? 'आज की दवाइयां'
-                : selectedLanguage === 'te'
-                ? 'ఈ రోజు మందుల సమయం'
-                : "Today's Pill Routine"}
-            </span>
+          <h2 className="text-lg font-bold text-slate-900 flex items-center space-x-2 tracking-tight">
+            <Clock className="w-5 h-5 text-emerald-700" />
+            <span>{currentStrings.routineTitle}</span>
           </h2>
           <span className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-full border border-slate-200 self-start sm:self-auto">
-            {completedCount} of {filteredMeds.length} taken
+            {completedCount} of {filteredMeds.length} Taken
           </span>
         </div>
 
         {/* Tactile Slot Switch Tabs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {[
-            { id: 'Morning', label: 'सुबह (Morning)', time: '08:00 AM', icon: Sun },
-            { id: 'Afternoon', label: 'दोपहर (Noon)', time: '01:30 PM', icon: Sunset },
-            { id: 'Evening', label: 'शाम (Evening)', time: '07:30 PM', icon: Flame },
-            { id: 'As Needed', label: 'रात (Night/Bed)', time: '09:30 PM', icon: Moon },
-          ].map(slot => {
-            const Icon = slot.icon;
-            const isSelected = activeSlot === slot.id;
+          {(['Morning', 'Afternoon', 'Evening', 'As Needed'] as const).map(slotId => {
+            const slotInfo = currentStrings.slots[slotId] || { label: slotId, time: '' };
+            const isSelected = activeSlot === slotId;
             return (
               <button
-                key={slot.id}
+                key={slotId}
                 onClick={() => {
                   SoundService.playTap();
-                  setActiveSlot(slot.id as any);
+                  setActiveSlot(slotId);
                 }}
-                className={`p-3.5 rounded-2xl border-2 font-black transition flex flex-col items-center justify-center space-y-0.5 active:scale-95 ${
+                className={`p-3 rounded-xl border font-bold transition flex flex-col items-center justify-center space-y-0.5 ${
                   isSelected
-                    ? 'bg-emerald-800 border-emerald-950 text-white shadow-md ring-2 ring-emerald-500/30'
+                    ? 'bg-emerald-800 border-emerald-900 text-white shadow-sm'
                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                 }`}
               >
-                <div className="flex items-center space-x-1.5">
-                  <Icon className={`w-4 h-4 ${isSelected ? 'text-emerald-200' : 'text-slate-500'}`} />
-                  <span className="text-xs sm:text-sm">{slot.label}</span>
-                </div>
-                <span className={`text-[11px] font-medium ${isSelected ? 'text-emerald-200' : 'text-slate-400'}`}>
-                  {slot.time}
+                <span className="text-xs sm:text-sm">{slotInfo.label}</span>
+                <span className={`text-[11px] font-normal ${isSelected ? 'text-emerald-200' : 'text-slate-400'}`}>
+                  {slotInfo.time}
                 </span>
               </button>
             );
           })}
         </div>
 
-        {/* List of Scheduled Medication Cards with 3D Pill & Big Voice Button */}
-        <div className="space-y-4 mt-4">
+        {/* List of Scheduled Medication Cards with Clinical Badges & 1-Tap Audio */}
+        <div className="space-y-3.5 mt-3">
           {filteredMeds.length === 0 ? (
-            <div className="bg-white rounded-3xl p-8 border border-dashed border-slate-300 text-center text-slate-500 shadow-sm">
-              <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-2 opacity-80" />
-              <h3 className="text-lg font-bold text-slate-800">
-                {selectedLanguage === 'hi' ? 'इस समय की सभी दवाइयां पूरी हैं!' : 'All Done for this time!'}
+            <div className="bg-white rounded-2xl p-8 border border-dashed border-slate-300 text-center text-slate-500 shadow-sm">
+              <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto mb-2 opacity-80" />
+              <h3 className="text-base font-bold text-slate-800">
+                {currentStrings.allDoneForSlot}
               </h3>
-              <p className="text-sm mt-1">No pending pills for this routine window.</p>
+              <p className="text-xs mt-1 text-slate-500">{currentStrings.noPendingSlot}</p>
             </div>
           ) : (
             filteredMeds.map(med => {
@@ -457,7 +552,7 @@ export default function ElderView({
               const isTaken = currentSchedule?.doseTakenToday;
               const isSpeakingThis = speakingPillId === med.id;
 
-              // Visual tag by color/shape
+              // Visual tag by color/shape in chosen language
               const visualTag =
                 selectedLanguage === 'hi'
                   ? med.visualTagHindi || `${med.pillColor} ${med.pillShape}`
@@ -468,20 +563,20 @@ export default function ElderView({
               return (
                 <div
                   key={med.id}
-                  className={`bg-white rounded-3xl p-5 sm:p-6 border-2 transition shadow-sm hover:shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                    isTaken ? 'border-emerald-300/80 bg-emerald-50/20' : 'border-slate-200/90'
+                  className={`bg-white rounded-2xl p-5 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                    isTaken ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200/90 hover:border-slate-300 shadow-sm'
                   }`}
                 >
-                  {/* Left Pill Info with 3D Pill Renderer & Voice Speaker */}
+                  {/* Left Pill Info with Clinical Tablet Preview & Audio Speaker */}
                   <div className="flex items-start sm:items-center space-x-4">
-                    {/* Clickable 3D Pill Preview */}
+                    {/* Clickable Pharmaceutical Pill Preview */}
                     <div
                       onClick={() => {
                         SoundService.playTap();
                         setSelectedMedForDetail(med);
                       }}
-                      className="cursor-pointer group flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition shrink-0"
-                      title="Click to view pill details"
+                      className="cursor-pointer group flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition shrink-0"
+                      title="Click to view full prescription"
                     >
                       <PillVisual3D
                         shape={med.pillShape}
@@ -490,74 +585,74 @@ export default function ElderView({
                         size="md"
                       />
                       <span className="text-[9px] font-bold text-slate-400 group-hover:text-emerald-700 mt-1 flex items-center">
-                        <Eye className="w-2.5 h-2.5 mr-0.5" /> विवरण
+                        <Eye className="w-2.5 h-2.5 mr-0.5" /> {currentStrings.viewDetails}
                       </span>
                     </div>
 
                     <div className="space-y-1 flex-1">
-                      {/* Prominent Visual Color Badge (Elder Friendly) */}
-                      <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-950 border border-amber-300">
-                        <span className="w-2.5 h-2.5 rounded-full bg-amber-600 inline-block" />
+                      {/* Clinical Visual Identifier Chip */}
+                      <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                        <span className="w-2 h-2 rounded-full bg-slate-500 inline-block" />
                         <span>{visualTag}</span>
                       </div>
 
                       <div className="flex items-center space-x-2 pt-0.5">
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                        <h3 className="text-lg font-bold text-slate-900 tracking-tight">
                           {med.name}
                         </h3>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-black bg-slate-100 text-slate-800 border border-slate-200">
+                        <span className="px-2 py-0.5 rounded text-[11px] font-extrabold bg-slate-100 text-slate-800 border border-slate-200">
                           {med.dosage}
                         </span>
                       </div>
 
-                      <p className="text-xs sm:text-sm font-semibold text-slate-700">
+                      <p className="text-xs sm:text-sm text-slate-600 font-medium">
                         {med.instructions}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 pt-1">
-                        <span className="flex items-center space-x-1 font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md">
-                          <Utensils className="w-3.5 h-3.5 text-amber-600" />
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 pt-0.5">
+                        <span className="flex items-center space-x-1 font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+                          <Utensils className="w-3 h-3 text-amber-700" />
                           <span>{med.foodRequirement.replace('-', ' ')}</span>
                         </span>
                         <span>•</span>
-                        <span className="flex items-center space-x-1">
-                          <Droplets className="w-3.5 h-3.5 text-sky-600" />
-                          <span>ताज़ा पानी (Fresh Water)</span>
+                        <span className="flex items-center space-x-1 text-slate-500">
+                          <Droplets className="w-3 h-3 text-sky-600" />
+                          <span>{currentStrings.waterNote}</span>
                         </span>
                       </div>
                     </div>
                   </div>
 
                   {/* Right Actions: Native Voice Speaker Button + Mark Taken */}
-                  <div className="flex items-center space-x-2.5 self-end sm:self-center shrink-0">
+                  <div className="flex items-center space-x-2 self-end sm:self-center shrink-0">
                     {/* Instant Audio Speaker Button for this pill */}
                     <button
                       onClick={() => handleSpeakPill(med)}
-                      className={`btn-tactile p-3.5 rounded-2xl border-2 font-bold transition flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 ${
+                      className={`p-2.5 sm:px-3 sm:py-2.5 rounded-xl border font-bold transition flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 ${
                         isSpeakingThis
                           ? 'bg-amber-100 border-amber-400 text-amber-950 animate-pulse'
                           : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-300 text-emerald-900'
                       }`}
-                      title="दवा की जानकारी आवाज में सुनें (Listen in mother tongue)"
+                      title="Audio pill directions in your mother tongue"
                     >
-                      <Volume2 className="w-5 h-5 text-emerald-700" />
-                      <span className="text-xs font-black hidden md:inline">
-                        {isSpeakingThis ? 'सुना रहे हैं...' : 'दवा सुनो 🔊'}
+                      <Volume2 className="w-4 h-4 text-emerald-800" />
+                      <span className="text-xs font-bold hidden md:inline">
+                        {isSpeakingThis ? currentStrings.speakingBtn : currentStrings.listenBtn}
                       </span>
                     </button>
 
                     {isTaken ? (
-                      <div className="flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-emerald-100 text-emerald-900 font-extrabold text-sm border-2 border-emerald-300">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                        <span>ले ली (Taken)</span>
+                      <div className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-emerald-100 text-emerald-900 font-bold text-xs sm:text-sm border border-emerald-300">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                        <span>{currentStrings.takenBadge}</span>
                       </div>
                     ) : (
                       <button
                         onClick={() => handleMarkDose(med.id, currentSchedule?.time || '08:00')}
-                        className="btn-tactile flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm sm:text-base shadow-md transition active:scale-95"
+                        className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm shadow transition active:scale-95"
                       >
-                        <Check className="w-5 h-5 stroke-[3]" />
-                        <span>मैंने दवा ले ली</span>
+                        <Check className="w-4 h-4 stroke-[3]" />
+                        <span>{currentStrings.markTakenBtn}</span>
                       </button>
                     )}
                   </div>
@@ -568,31 +663,31 @@ export default function ElderView({
         </div>
       </section>
 
-      {/* Daily Hydration Routine */}
+      {/* Clinical Hydration Routine */}
       <HydrationTracker initialCount={5} />
 
       {/* Emergency SOS Bar */}
-      <section className="bg-gradient-to-r from-rose-50 via-red-50 to-amber-50 rounded-3xl p-6 border-2 border-rose-300/80 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md">
-            <ShieldAlert className="w-7 h-7" />
+      <section className="bg-rose-50/70 rounded-2xl p-5 sm:p-6 border border-rose-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-11 h-11 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <ShieldAlert className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-black text-slate-900">
-              आपातकालीन सहायता (Emergency SOS)?
+            <h3 className="text-base font-bold text-slate-900">
+              {currentStrings.sosTitle}
             </h3>
-            <p className="text-xs sm:text-sm text-slate-600">
-              लाल बटन दबाने पर राजेश, सिस्टर कविता और अपोलो इमरजेंसी को तुरंत संदेश चला जाएगा।
+            <p className="text-xs text-slate-600 max-w-xl">
+              {currentStrings.sosSub}
             </p>
           </div>
         </div>
 
         <button
           onClick={onTriggerSos}
-          className="btn-tactile shrink-0 px-6 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-base shadow-lg animate-sos flex items-center justify-center space-x-2"
+          className="shrink-0 px-5 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-sm shadow-md flex items-center justify-center space-x-2 active:scale-95 transition"
         >
-          <ShieldAlert className="w-5 h-5" />
-          <span>आपातकाल SOS</span>
+          <ShieldAlert className="w-4 h-4" />
+          <span>{currentStrings.sosBtn}</span>
         </button>
       </section>
     </div>
