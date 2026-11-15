@@ -249,16 +249,16 @@ export default function ElderView({
     SoundService.playTap();
     setSpeakingPillId(med.id);
 
-    let textToSpeak = med.voiceDescriptionEnglish || `${med.name}. ${med.instructions}`;
+    let textToSpeak = med.voiceDescriptionEnglish || `${med.name}. ${med.instructionsEnglish || med.instructions}`;
     let phoneticFallback: string | undefined = undefined;
 
-    if (selectedLanguage === 'hi' && med.voiceDescriptionHindi) {
-      textToSpeak = med.voiceDescriptionHindi;
+    if (selectedLanguage === 'hi') {
+      textToSpeak = med.voiceDescriptionHindi || `${med.name}. ${med.instructionsHindi || med.instructions}`;
     } else if (selectedLanguage === 'te') {
-      textToSpeak = med.voiceDescriptionTelugu || med.voiceDescriptionEnglish || `${med.name}. ${med.instructions}`;
-      phoneticFallback = med.voiceDescriptionTeluguPhonetic;
+      textToSpeak = med.voiceDescriptionTelugu || `${med.name}. ${med.instructionsTelugu || med.instructions}`;
+      phoneticFallback = med.voiceDescriptionTeluguPhonetic || `${med.name}. ${med.instructionsTeluguPhonetic || med.instructionsEnglish || med.instructions}`;
     } else if (selectedLanguage === 'ta') {
-      textToSpeak = med.voiceDescriptionTamil || med.voiceDescriptionEnglish || `${med.name}. ${med.instructions}`;
+      textToSpeak = med.voiceDescriptionTamil || `${med.name}. ${med.instructionsTamil || med.instructions}`;
       phoneticFallback = med.voiceDescriptionTamilPhonetic;
     }
 
@@ -296,12 +296,12 @@ export default function ElderView({
       }
     } else if (selectedLanguage === 'te') {
       textToSpeak = `నమస్కారం లక్ష్మి అమ్మా! మీ ${activeSlot === 'Morning' ? 'ఉదయం' : activeSlot === 'Afternoon' ? 'మధ్యాహ్నం' : 'రాత్రి'} సమయానికి ${slotMeds.length} మందులు ఉన్నాయి. ` +
-        slotMeds.map((m, idx) => `మందు ${idx + 1}: ${m.name}. ${m.instructions}.`).join(' ') +
+        slotMeds.map((m, idx) => `మందు ${idx + 1}: ${m.name}. ${m.instructionsTelugu || ''}.`).join(' ') +
         ` మంచినీళ్లు తాగడం మరచిపోకండి.`;
 
       phoneticFallback = `Namaskaram Lakshmi Amma! Mee ${activeSlot} schedule lo ${slotMeds.length} mandulu unnayi. ` +
-        slotMeds.map((m, idx) => `Goli ${idx + 1}: ${m.name}. ${m.instructions}.`).join(' ') +
-        ` Neellatho teesukondi.`;
+        slotMeds.map((m, idx) => `Goli ${idx + 1}: ${m.name}. ${m.instructionsTeluguPhonetic || m.instructionsEnglish || ''}.`).join(' ') +
+        ` Manchineellatho teesukondi.`;
     } else {
       textToSpeak = `Namaste ${elder.preferredName}. For your ${activeSlot} schedule, `;
       if (slotMeds.length === 0) {
@@ -606,7 +606,11 @@ export default function ElderView({
                       </div>
 
                       <p className="text-xs sm:text-sm text-slate-600 font-medium">
-                        {med.instructions}
+                        {selectedLanguage === 'hi'
+                          ? med.instructionsHindi || med.instructions
+                          : selectedLanguage === 'te'
+                          ? med.instructionsTelugu || med.instructions
+                          : med.instructionsEnglish || med.instructions}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 pt-0.5">

@@ -79,6 +79,11 @@ export interface Medication {
   frequency: FrequencyType;
   schedules: MedicationScheduleItem[];
   instructions: string;
+  instructionsHindi?: string;
+  instructionsTelugu?: string;
+  instructionsTeluguPhonetic?: string;
+  instructionsTamil?: string;
+  instructionsEnglish?: string;
   foodRequirement: FoodRequirement;
   pillColor: PillColor;
   pillShape: PillShape;

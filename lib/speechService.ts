@@ -3,8 +3,9 @@
  * Provides calm, natural Text-to-Speech (TTS) in Indian Native Languages
  * (Hindi, Telugu, Tamil, Indian English) and multilingual intent recognition.
  * 
- * Includes intelligent voice matching prioritizing high-clarity Natural / Neural voices
- * and seamless phonetic fallback for browsers lacking native Telugu/Tamil speech engines.
+ * Strict Language & Voice Isolation:
+ * Prevents voice cross-talk, eliminates Chrome's silent redirection of unbundled
+ * regional languages to Hindi, and enforces strict voice engine boundaries.
  */
 
 import { NativeLanguage } from './types';
@@ -61,10 +62,8 @@ export class SpeechService {
   }
 
   /**
-   * Selects the highest quality natural voice for a language.
-   * Priority: Natural / Neural / Online > Google > Language match.
-   * If a browser lacks a native engine (e.g. Chrome on Windows without Telugu TTS),
-   * returns isNative = false so caller can use phonetic Indian English speech.
+   * Strictly isolates voices per language to prevent cross-contamination.
+   * Hindi voices can NEVER be assigned to Telugu or English.
    */
   public static selectBestVoice(targetLang: NativeLanguage): {
     voice: SpeechSynthesisVoice | null;
@@ -80,78 +79,147 @@ export class SpeechService {
       };
     }
 
-    const langCode = targetLang === 'hi' ? 'hi' : targetLang === 'te' ? 'te' : targetLang === 'ta' ? 'ta' : 'en';
+    // --- TELUGU ---
+    if (targetLang === 'te') {
+      // 1. Check for genuine Telugu voice (e.g. Edge: Microsoft Mohan/Shruti)
+      const teluguVoice = voices.find(v => {
+        const vl = (v.lang || '').replace('_', '-').toLowerCase();
+        const vn = (v.name || '').toLowerCase();
+        return vl.startsWith('te') || vn.includes('telugu');
+      });
 
-    // 1. Search for native voices matching the language code (e.g., te-IN, hi-IN)
-    const nativeMatches = voices.filter(v => {
-      const vLang = (v.lang || '').replace('_', '-').toLowerCase();
-      const vName = (v.name || '').toLowerCase();
-      return vLang.startsWith(langCode) || vName.includes(
-        targetLang === 'te' ? 'telugu' : targetLang === 'hi' ? 'hindi' : targetLang === 'ta' ? 'tamil' : 'english'
-      );
-    });
+      if (teluguVoice) {
+        return {
+          voice: teluguVoice,
+          isNative: true,
+          speechLang: teluguVoice.lang || 'te-IN',
+        };
+      }
 
-    if (nativeMatches.length > 0) {
-      // Pick best quality (Natural/Online > Google > first available)
-      const best = nativeMatches.find(v => v.name.includes('Natural') || v.name.includes('Online'))
-        || nativeMatches.find(v => v.name.includes('Google'))
-        || nativeMatches[0];
+      // 2. Fallback when browser lacks native Telugu (Standard Chrome on Windows):
+      // STRICT RULE: Must be a pure ENGLISH voice. EXCLUDE any voice containing 'hindi' or 'hi-IN'!
+      const pureEnglishIndian = voices.find(v => {
+        const vl = (v.lang || '').replace('_', '-').toLowerCase();
+        const vn = (v.name || '').toLowerCase();
+        return (
+          vl.startsWith('en') &&
+          !vl.startsWith('hi') &&
+          !vn.includes('hindi') &&
+          (vl === 'en-in' || vn.includes('neerja') || vn.includes('prabhat') || vn.includes('heera'))
+        );
+      });
+
+      if (pureEnglishIndian) {
+        return {
+          voice: pureEnglishIndian,
+          isNative: false,
+          speechLang: 'en-IN',
+        };
+      }
+
+      // 3. Fallback to any natural English voice (never Hindi)
+      const pureEnglishNatural = voices.find(v => {
+        const vl = (v.lang || '').replace('_', '-').toLowerCase();
+        const vn = (v.name || '').toLowerCase();
+        return vl.startsWith('en') && !vl.startsWith('hi') && !vn.includes('hindi') && (vn.includes('natural') || vn.includes('google'));
+      });
+
+      if (pureEnglishNatural) {
+        return {
+          voice: pureEnglishNatural,
+          isNative: false,
+          speechLang: pureEnglishNatural.lang || 'en-US',
+        };
+      }
+
+      const anyEnglish = voices.find(v => {
+        const vl = (v.lang || '').replace('_', '-').toLowerCase();
+        const vn = (v.name || '').toLowerCase();
+        return vl.startsWith('en') && !vl.startsWith('hi') && !vn.includes('hindi');
+      });
 
       return {
-        voice: best,
-        isNative: true,
-        speechLang: best.lang || `${langCode}-IN`,
+        voice: anyEnglish || null,
+        isNative: false,
+        speechLang: 'en-US',
       };
     }
 
-    // 2. Fallback for Telugu / Tamil when browser does NOT bundle that voice:
-    // Route to Indian English voice (en-IN) to prevent Chrome from defaulting to Hindi!
-    const indianEnglishVoices = voices.filter(v => {
-      const vLang = (v.lang || '').replace('_', '-').toLowerCase();
-      const vName = (v.name || '').toLowerCase();
+    // --- HINDI ---
+    if (targetLang === 'hi') {
+      const hindiNatural = voices.find(v => {
+        const vl = (v.lang || '').replace('_', '-').toLowerCase();
+        const vn = (v.name || '').toLowerCase();
+        return (vl.startsWith('hi') || vn.includes('hindi')) && (vn.includes('natural') || vn.includes('online'));
+      });
+
+      if (hindiNatural) {
+        return { voice: hindiNatural, isNative: true, speechLang: hindiNatural.lang || 'hi-IN' };
+      }
+
+      const anyHindi = voices.find(v => {
+        const vl = (v.lang || '').replace('_', '-').toLowerCase();
+        const vn = (v.name || '').toLowerCase();
+        return vl.startsWith('hi') || vn.includes('hindi') || vn.includes('google हिन्दी');
+      });
+
+      return { voice: anyHindi || null, isNative: true, speechLang: anyHindi?.lang || 'hi-IN' };
+    }
+
+    // --- TAMIL ---
+    if (targetLang === 'ta') {
+      const tamilVoice = voices.find(v => {
+        const vl = (v.lang || '').replace('_', '-').toLowerCase();
+        const vn = (v.name || '').toLowerCase();
+        return vl.startsWith('ta') || vn.includes('tamil');
+      });
+
+      if (tamilVoice) {
+        return { voice: tamilVoice, isNative: true, speechLang: tamilVoice.lang || 'ta-IN' };
+      }
+
+      // English fallback
+      const enVoice = voices.find(v => {
+        const vl = (v.lang || '').replace('_', '-').toLowerCase();
+        const vn = (v.name || '').toLowerCase();
+        return vl.startsWith('en') && !vl.startsWith('hi') && !vn.includes('hindi');
+      });
+
+      return { voice: enVoice || null, isNative: false, speechLang: 'en-IN' };
+    }
+
+    // --- ENGLISH ---
+    const enIndianNatural = voices.find(v => {
+      const vl = (v.lang || '').replace('_', '-').toLowerCase();
+      const vn = (v.name || '').toLowerCase();
       return (
-        vLang === 'en-in' ||
-        vName.includes('india') ||
-        vName.includes('neerja') ||
-        vName.includes('prabhat') ||
-        vName.includes('heera')
+        vl.startsWith('en') &&
+        !vl.startsWith('hi') &&
+        !vn.includes('hindi') &&
+        (vl === 'en-in' || vn.includes('neerja') || vn.includes('prabhat')) &&
+        (vn.includes('natural') || vn.includes('online'))
       );
     });
 
-    if (indianEnglishVoices.length > 0) {
-      const bestInEn = indianEnglishVoices.find(v => v.name.includes('Natural') || v.name.includes('Online'))
-        || indianEnglishVoices.find(v => v.name.includes('Google'))
-        || indianEnglishVoices[0];
-
-      return {
-        voice: bestInEn,
-        isNative: false,
-        speechLang: 'en-IN',
-      };
+    if (enIndianNatural) {
+      return { voice: enIndianNatural, isNative: true, speechLang: enIndianNatural.lang || 'en-IN' };
     }
 
-    // 3. Fallback to any Natural / High-quality English voice
-    const naturalEnglish = voices.find(v => (v.lang || '').startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google')));
-    if (naturalEnglish) {
-      return {
-        voice: naturalEnglish,
-        isNative: false,
-        speechLang: naturalEnglish.lang || 'en-US',
-      };
-    }
+    const anyEn = voices.find(v => {
+      const vl = (v.lang || '').replace('_', '-').toLowerCase();
+      const vn = (v.name || '').toLowerCase();
+      return vl.startsWith('en') && !vl.startsWith('hi') && !vn.includes('hindi');
+    });
 
-    // 4. Default voice
-    const defaultVoice = voices.find(v => (v.lang || '').startsWith('en')) || voices[0];
-    return {
-      voice: defaultVoice || null,
-      isNative: false,
-      speechLang: defaultVoice?.lang || 'en-US',
-    };
+    return { voice: anyEn || null, isNative: true, speechLang: anyEn?.lang || 'en-IN' };
   }
 
   /**
    * Speak a text string with comfortable, natural cadence in chosen Indian language.
-   * Supports an optional phoneticFallbackText for when browser lacks native Telugu/Tamil TTS.
+   * Guarantees:
+   * 1. Never passes Hindi voices to Telugu or English.
+   * 2. If browser lacks Telugu TTS (Chrome), sets utterance.lang to 'en-IN' to prevent Chrome
+   *    from silently forcing the Hindi engine, and speaks the phonetic text cleanly.
    */
   public static speak(
     text: string,
@@ -171,26 +239,49 @@ export class SpeechService {
         return;
       }
 
-      this.stop(); // Stop any currently playing audio
+      this.stop(); // Stop any active speech
 
       const targetLang = options.lang || this.currentLang;
       const { voice, isNative, speechLang } = this.selectBestVoice(targetLang);
 
-      // If language is Telugu or Tamil and no native engine exists in browser,
-      // use phonetic Indian English speech rather than letting Chrome read Telugu with Hindi/gibberish voice
+      // Determine text and speech language
       let utteranceText = text;
-      if (!isNative && (targetLang === 'te' || targetLang === 'ta') && options.phoneticFallbackText) {
-        utteranceText = options.phoneticFallbackText;
+      let finalSpeechLang = speechLang;
+
+      if (targetLang === 'te') {
+        if (!isNative) {
+          // No native Telugu voice in Chrome:
+          // CRITICAL: Force speechLang = 'en-IN' so Chrome doesn't fall back to Hindi!
+          finalSpeechLang = 'en-IN';
+          utteranceText = options.phoneticFallbackText || text;
+        } else {
+          // Native Telugu voice exists (e.g. Edge)
+          finalSpeechLang = 'te-IN';
+          utteranceText = text;
+        }
+      } else if (targetLang === 'ta') {
+        if (!isNative) {
+          finalSpeechLang = 'en-IN';
+          utteranceText = options.phoneticFallbackText || text;
+        } else {
+          finalSpeechLang = 'ta-IN';
+          utteranceText = text;
+        }
+      } else if (targetLang === 'hi') {
+        finalSpeechLang = 'hi-IN';
+        utteranceText = text;
+      } else {
+        finalSpeechLang = 'en-IN';
+        utteranceText = text;
       }
 
       const utterance = new SpeechSynthesisUtterance(utteranceText);
-      utterance.lang = speechLang;
+      utterance.lang = finalSpeechLang;
       if (voice) {
         utterance.voice = voice;
       }
 
-      // Natural, calm rate (0.88 - 0.92 sounds human, not rushed or robotic)
-      utterance.rate = options.rate ?? (isNative ? 0.88 : 0.90);
+      utterance.rate = options.rate ?? 0.88;
       utterance.pitch = options.pitch ?? 1.0;
       utterance.volume = options.volume ?? 1.0;
 
@@ -200,7 +291,7 @@ export class SpeechService {
       };
 
       utterance.onerror = (e) => {
-        console.warn('SpeechSynthesis notice:', e);
+        console.warn('SpeechSynthesis event:', e);
         options.onEnd?.();
         resolve();
       };
