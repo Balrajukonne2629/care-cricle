@@ -144,6 +144,10 @@ class SoundService {
       osc.stop(ctx.currentTime + i * 0.2 + 0.19);
     }
   }
+
+  public static playEmergency(): void {
+    this.playAlarm();
+  }
 }
 
 export default SoundService;

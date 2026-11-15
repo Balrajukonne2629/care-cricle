@@ -9,6 +9,7 @@ import VoiceAssistantModal from '@/components/VoiceAssistantModal';
 import EmailInspectorModal from '@/components/EmailInspectorModal';
 import EmergencyModal from '@/components/EmergencyModal';
 import DoctorReportModal from '@/components/DoctorReportModal';
+import DemoControlsBanner from '@/components/DemoControlsBanner';
 
 import {
   ROLE_PINS,
@@ -263,6 +264,72 @@ export default function CareCircleApp() {
     }
   };
 
+  // Evaluator Simulation: 30-min Missed Dose & Family Escalation
+  const handleSimulateMissedDose = async () => {
+    SoundService.playEmergency();
+    // Mark first morning med as missed
+    setMedications(prev =>
+      prev.map((m, idx) => {
+        if (idx === 1) {
+          // Metformin
+          return {
+            ...m,
+            schedules: m.schedules.map(s => ({ ...s, doseTakenToday: false, status: 'missed' as const })),
+          };
+        }
+        return m;
+      })
+    );
+
+    // Dispatch escalation email
+    await handleTriggerTestEmail('missed_dose');
+
+    // Add urgent activity feed item
+    setActivities(prev => [
+      {
+        id: `act-esc-${Date.now()}`,
+        timestamp: 'Just now (Escalation)',
+        actor: { name: 'CareCircle Proactive Guard', role: 'system' },
+        category: 'escalation',
+        title: '⚠️ 30-Min Grace Period Expired: Metformin 500mg Missed',
+        description: 'Urgent email escalation dispatched to Sarah Vance-Miller (Daughter).',
+        severity: 'high',
+      },
+      ...prev,
+    ]);
+  };
+
+  // Evaluator Simulation: Low Refill Warning
+  const handleSimulateLowRefill = async () => {
+    SoundService.playTap();
+    setMedications(prev =>
+      prev.map((m, idx) => {
+        if (idx === 2) {
+          // Atorvastatin
+          return { ...m, remainingCount: 2 };
+        }
+        return m;
+      })
+    );
+
+    // Dispatch refill email
+    await handleTriggerTestEmail('refill');
+
+    // Add activity note
+    setActivities(prev => [
+      {
+        id: `act-refill-${Date.now()}`,
+        timestamp: 'Just now (Supply Alert)',
+        actor: { name: 'CareCircle Inventory Engine', role: 'system' },
+        category: 'medication',
+        title: '📦 Low Prescription Supply Alert: Atorvastatin Calcium',
+        description: 'Remaining count dropped to 2 pills. Pharmacy notification dispatched.',
+        severity: 'medium',
+      },
+      ...prev,
+    ]);
+  };
+
   return (
     <div className={`min-h-screen bg-[#fbfaf8] ${highContrast ? 'elder-high-contrast' : ''}`}>
       {/* Top Accessible Navbar */}
@@ -285,7 +352,15 @@ export default function CareCircleApp() {
       />
 
       {/* Main Responsive Body */}
-      <main className="py-6 sm:py-8">
+      <main className="py-6 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6">
+        {/* Hackathon Evaluator Simulation Showcase Bar */}
+        <DemoControlsBanner
+          onTriggerSimulatedEscalation={handleSimulateMissedDose}
+          onTriggerLowRefill={handleSimulateLowRefill}
+          onOpenEmailInspector={() => setIsEmailInspectorOpen(true)}
+          onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
+        />
+
         {currentRole.role === 'elder' ? (
           <ElderView
             elder={elder}

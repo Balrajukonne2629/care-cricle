@@ -19,6 +19,9 @@ import {
   AlertCircle,
   ExternalLink,
   Search,
+  Eye,
+  MapPin,
+  Sparkles,
 } from 'lucide-react';
 import {
   Medication,
@@ -31,6 +34,9 @@ import {
 } from '@/lib/types';
 import { checkMedicationInteractions, checkNewMedicationSafety } from '@/lib/drugInteractions';
 import SoundService from '@/lib/soundService';
+import PillVisual3D from './PillVisual3D';
+import AdherenceHeatmap from './AdherenceHeatmap';
+import MedicationDetailModal from './MedicationDetailModal';
 
 interface CaregiverViewProps {
   currentRole: UserRolePin;
@@ -60,6 +66,8 @@ export default function CaregiverView({
   onSendTestNotification,
 }: CaregiverViewProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'medications' | 'interactions' | 'appointments' | 'notes'>('overview');
+  const [selectedMedForDetail, setSelectedMedForDetail] = useState<Medication | null>(null);
+  const [medCategoryFilter, setMedCategoryFilter] = useState<string>('all');
   
   // Note composer state
   const [newNoteText, setNewNoteText] = useState('');
@@ -127,46 +135,62 @@ export default function CaregiverView({
     setIsPostingNote(false);
   };
 
+  // Filtered medications
+  const filteredMeds = medications.filter(m => {
+    if (medCategoryFilter === 'all') return true;
+    if (medCategoryFilter === 'cardio') return m.purpose.toLowerCase().includes('pressure') || m.purpose.toLowerCase().includes('cholesterol') || m.purpose.toLowerCase().includes('cardio');
+    if (medCategoryFilter === 'metabolic') return m.purpose.toLowerCase().includes('sugar') || m.purpose.toLowerCase().includes('diabetes');
+    if (medCategoryFilter === 'pain') return m.purpose.toLowerCase().includes('pain') || m.purpose.toLowerCase().includes('arthritis');
+    if (medCategoryFilter === 'vitamins') return m.purpose.toLowerCase().includes('bone') || m.purpose.toLowerCase().includes('vitamin');
+    return true;
+  });
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-20 px-4 sm:px-6">
-      {/* Caregiver Header Card */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="max-w-7xl mx-auto space-y-6 pb-24 px-4 sm:px-6">
+      {/* Detail Modal */}
+      <MedicationDetailModal
+        medication={selectedMedForDetail}
+        onClose={() => setSelectedMedForDetail(null)}
+      />
+
+      {/* Caregiver Command Header */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-200">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-200">
               {currentRole.label}
             </span>
             <span className="text-xs text-slate-400 font-medium">• Patient: Eleanor Vance (78 yo)</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
             CareCircle Clinical & Family Portal
           </h1>
-          <p className="text-sm text-slate-600">
-            Real-time adherence telemetry, clinical interaction alerts, and care coordination.
+          <p className="text-sm text-slate-600 mt-0.5">
+            Real-time adherence telemetry, clinical interaction alerts, and shared care coordination.
           </p>
         </div>
 
         {/* Action button bar */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => {
               SoundService.playTap();
               onOpenDoctorReport();
             }}
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow transition active:scale-95"
+            className="btn-tactile flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm shadow transition active:scale-95"
           >
             <FileText className="w-4 h-4 text-emerald-400" />
-            <span>Generate Doctor Report</span>
+            <span>Physician Adherence Report</span>
           </button>
           <button
             onClick={() => {
               SoundService.playTap();
               setShowAddMedModal(true);
             }}
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow transition active:scale-95"
+            className="btn-tactile flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow transition active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Medication</span>
+            <span>Add Prescription</span>
           </button>
         </div>
       </div>
@@ -189,9 +213,9 @@ export default function CaregiverView({
                 SoundService.playTap();
                 setActiveTab(tab.id as any);
               }}
-              className={`flex items-center space-x-2 px-4 py-3 rounded-t-xl font-bold text-sm transition border-b-2 whitespace-nowrap ${
+              className={`flex items-center space-x-2 px-4 py-3 rounded-t-2xl font-black text-sm transition border-b-2 whitespace-nowrap ${
                 isSelected
-                  ? 'border-emerald-600 text-emerald-800 bg-white'
+                  ? 'border-emerald-600 text-emerald-900 bg-white shadow-sm'
                   : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/60'
               }`}
             >
@@ -202,10 +226,13 @@ export default function CaregiverView({
         })}
       </div>
 
-      {/* Tab: Overview (Adherence Scorecard + Vitals + Escalation Banner) */}
+      {/* Tab: Overview (Adherence Scorecard + Heatmap + Escalation Banner) */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Adherence Scorecard Cards */}
+          {/* Adherence Heatmap Visual Grid */}
+          <AdherenceHeatmap percentage7d={94} percentage30d={91} streakDays={14} />
+
+          {/* Adherence Scorecard Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">7-Day Adherence</span>
@@ -228,7 +255,7 @@ export default function CaregiverView({
             <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Current Streak</span>
               <div className="flex items-baseline space-x-2 mt-2">
-                <span className="text-3xl font-extrabold text-amber-600">6 Days</span>
+                <span className="text-3xl font-extrabold text-amber-600">14 Days</span>
                 <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">Consistent</span>
               </div>
               <p className="text-xs text-slate-500 mt-2">All morning doses taken before 08:30 AM</p>
@@ -336,69 +363,122 @@ export default function CaregiverView({
         </div>
       )}
 
-      {/* Tab: Medications */}
+      {/* Tab: Medications (Elevated Prescription Catalog with 3D Visualizer & Category Filters) */}
       {activeTab === 'medications' && (
-        <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="space-y-4">
+          <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900">Current Prescriptions & Supplements</h3>
-              <p className="text-xs text-slate-500">Track dosage, schedules, pill appearance, and inventory.</p>
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">Active Prescriptions & Regimens</h3>
+              <p className="text-xs text-slate-500">Track 3D pill appearances, schedules, remaining counts, and pharmacy details.</p>
             </div>
-            <button
-              onClick={() => setShowAddMedModal(true)}
-              className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-sm shadow hover:bg-emerald-700 transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add New Prescription</span>
-            </button>
+
+            {/* Filter pills */}
+            <div className="flex flex-wrap gap-1.5 text-xs">
+              {[
+                { id: 'all', label: `All (${medications.length})` },
+                { id: 'cardio', label: 'Heart & BP' },
+                { id: 'metabolic', label: 'Diabetes' },
+                { id: 'pain', label: 'Pain & Joint' },
+                { id: 'vitamins', label: 'Supplements' },
+              ].map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => {
+                    SoundService.playTap();
+                    setMedCategoryFilter(f.id);
+                  }}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition ${
+                    medCategoryFilter === f.id
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-700">
-              <thead className="bg-slate-50 text-slate-500 font-bold text-xs uppercase border-y border-slate-200">
-                <tr>
-                  <th className="py-3 px-4">Medication</th>
-                  <th className="py-3 px-4">Schedule</th>
-                  <th className="py-3 px-4">Instructions</th>
-                  <th className="py-3 px-4">Pill Count</th>
-                  <th className="py-3 px-4">Prescriber</th>
-                  <th className="py-3 px-4">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {medications.map(med => (
-                  <tr key={med.id} className="hover:bg-slate-50/80 transition">
-                    <td className="py-3.5 px-4">
-                      <div className="font-extrabold text-slate-900">{med.name}</div>
-                      <div className="text-xs text-slate-500">{med.dosage} • {med.purpose}</div>
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-700">
-                      {med.schedules.map(s => `${s.label} (${s.time})`).join(', ')}
-                    </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-600 max-w-xs">
+          {/* Cards Grid with 3D Pill Renderers */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredMeds.map(med => {
+              const stockPct = Math.round((med.remainingCount / med.totalRefillCount) * 100);
+              const isLow = med.remainingCount <= med.refillThreshold;
+
+              return (
+                <div
+                  key={med.id}
+                  className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-slate-50 rounded-2xl border border-slate-200/80 shadow-inner flex items-center justify-center">
+                          <PillVisual3D
+                            shape={med.pillShape}
+                            color={med.pillColor}
+                            dosage={med.dosage}
+                            size="md"
+                          />
+                        </div>
+                        <div>
+                          <h4 className="font-black text-slate-900 text-base leading-snug">
+                            {med.name}
+                          </h4>
+                          <span className="text-xs font-bold text-emerald-700">
+                            {med.dosage} • {med.frequency}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                          isLow ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+                        }`}
+                      >
+                        {isLow ? 'Low Stock' : 'Active'}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-slate-600 font-medium">
                       {med.instructions}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className={`font-bold ${med.remainingCount <= med.refillThreshold ? 'text-rose-600' : 'text-slate-800'}`}>
-                        {med.remainingCount} / {med.totalRefillCount}
+                    </p>
+
+                    <div className="text-[11px] text-slate-400 space-y-0.5">
+                      <div>Prescriber: {med.prescribingDoctor}</div>
+                      <div className="font-mono">Rx: {med.prescriptionNumber}</div>
+                    </div>
+                  </div>
+
+                  {/* Stock Bar & Detail Inspection Button */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-500 font-medium">Remaining Supply:</span>
+                      <span className={`font-black ${isLow ? 'text-rose-600' : 'text-slate-800'}`}>
+                        {med.remainingCount} / {med.totalRefillCount} pills
                       </span>
-                      {med.remainingCount <= med.refillThreshold && (
-                        <span className="block text-[10px] text-rose-500 font-bold uppercase">Low</span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-600">
-                      <div>{med.prescribingDoctor}</div>
-                      <div className="text-[11px] font-mono text-slate-400">{med.prescriptionNumber}</div>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                        Active
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 ${isLow ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                        style={{ width: `${Math.min(stockPct, 100)}%` }}
+                      />
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        SoundService.playTap();
+                        setSelectedMedForDetail(med);
+                      }}
+                      className="w-full mt-2 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center space-x-1.5 transition active:scale-95"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Inspect Clinical Sheet</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -414,7 +494,7 @@ export default function CaregiverView({
                 <span>Clinical Drug-to-Drug & Drug-to-Food Matrix</span>
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Automated clinical safety rules evaluating Eleanor's active regimen against high-risk pharmacological interactions.
+                Automated clinical safety rules evaluating Eleanor&apos;s active regimen against high-risk pharmacological interactions.
               </p>
             </div>
 
@@ -464,7 +544,7 @@ export default function CaregiverView({
               <span>Prospective Prescription Safety Checker</span>
             </h3>
             <p className="text-xs text-slate-500">
-              Type any new prospective drug or substance (e.g. "Warfarin", "Ibuprofen", "Grapefruit", "Potassium") to test safety against Eleanor's active medications.
+              Type any new prospective drug or substance (e.g. &ldquo;Warfarin&rdquo;, &ldquo;Ibuprofen&rdquo;, &ldquo;Grapefruit&rdquo;, &ldquo;Potassium&rdquo;) to test safety against Eleanor&apos;s active medications.
             </p>
 
             <form onSubmit={handleTestProspective} className="flex gap-2">
@@ -488,7 +568,7 @@ export default function CaregiverView({
                 {checkerResults.length === 0 ? (
                   <div className="flex items-center space-x-2 text-emerald-700 font-bold text-sm">
                     <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                    <span>No severe clinical conflicts detected for "{checkerQuery}" with current medications.</span>
+                    <span>No severe clinical conflicts detected for &ldquo;{checkerQuery}&rdquo; with current medications.</span>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -510,7 +590,7 @@ export default function CaregiverView({
         </div>
       )}
 
-      {/* Tab: Appointments */}
+      {/* Tab: Appointments with Enhanced Card Layout */}
       {activeTab === 'appointments' && (
         <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
@@ -522,22 +602,30 @@ export default function CaregiverView({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {appointments.map(a => (
-              <div key={a.id} className="p-5 rounded-2xl border-2 border-slate-200/90 space-y-3 bg-slate-50/50 flex flex-col justify-between">
+              <div key={a.id} className="p-5 rounded-3xl border-2 border-slate-200/90 space-y-3 bg-slate-50/50 flex flex-col justify-between hover:shadow-md transition">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
                       {a.specialty}
                     </span>
-                    <span className="text-xs text-slate-400 font-medium">{a.status}</span>
+                    <span className="text-xs text-slate-400 font-bold uppercase">{a.status}</span>
                   </div>
                   <h4 className="font-extrabold text-slate-900 text-base mt-2">{a.title}</h4>
                   <p className="text-xs text-slate-600 font-semibold">{a.doctorName} • {a.clinic}</p>
 
-                  <div className="mt-3 space-y-1 text-xs text-slate-500">
-                    <p>📅 <strong>Date:</strong> {a.date} at {a.time}</p>
-                    <p>📍 <strong>Location:</strong> {a.location}</p>
-                    {a.notes && <p>📝 <strong>Notes:</strong> {a.notes}</p>}
-                    <p>🚗 <strong>Transport:</strong> {a.transportationArranged ? 'Arranged (Sarah)' : 'Needs ride'}</p>
+                  <div className="mt-3 space-y-1.5 text-xs text-slate-600">
+                    <p className="flex items-center space-x-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                      <span><strong>Date:</strong> {a.date} at {a.time}</span>
+                    </p>
+                    <p className="flex items-center space-x-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                      <span>{a.location}</span>
+                    </p>
+                    {a.notes && <p className="bg-white p-2 rounded-xl border border-slate-200/80 text-[11px]">📝 {a.notes}</p>}
+                    <p className="text-[11px] text-indigo-700 font-bold">
+                      🚗 Transportation: {a.transportationArranged ? 'Arranged (Sarah)' : 'Needs ride'}
+                    </p>
                   </div>
                 </div>
 
@@ -545,10 +633,10 @@ export default function CaregiverView({
                   href={`/api/appointments?format=ics&id=${a.id}`}
                   download={`carecircle-${a.id}.ics`}
                   onClick={() => SoundService.playTap()}
-                  className="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold border border-slate-200 shadow-sm transition active:scale-95"
+                  className="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold border border-slate-200 shadow-sm transition active:scale-95"
                 >
                   <Download className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Add to Calendar (.ICS)</span>
+                  <span>Sync to Calendar (.ICS)</span>
                 </a>
               </div>
             ))}
@@ -577,7 +665,7 @@ export default function CaregiverView({
               <button
                 type="submit"
                 disabled={isPostingNote || !newNoteText.trim()}
-                className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-sm shadow transition"
+                className="btn-tactile flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-sm shadow transition"
               >
                 <Send className="w-4 h-4" />
                 <span>{isPostingNote ? 'Posting...' : 'Post to Care Circle'}</span>

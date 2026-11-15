@@ -1,4 +1,4 @@
-export type Role = 'elder' | 'family' | 'nurse' | 'doctor';
+export type Role = 'elder' | 'family' | 'nurse' | 'doctor' | 'system';
 
 export interface UserRolePin {
   role: Role;
@@ -65,7 +65,7 @@ export interface MedicationScheduleItem {
   label: 'Morning' | 'Afternoon' | 'Evening' | 'Bedtime' | 'As Needed';
   doseTakenToday?: boolean;
   takenAt?: string;
-  status?: 'pending' | 'taken' | 'skipped' | 'snoozed';
+  status?: 'pending' | 'taken' | 'skipped' | 'snoozed' | 'missed';
 }
 
 export interface Medication {
@@ -143,10 +143,10 @@ export interface ActivityFeedItem {
     name: string;
     role: Role;
   };
-  category: 'medication' | 'vitals' | 'sos' | 'appointment' | 'refill' | 'note';
+  category: 'medication' | 'vitals' | 'sos' | 'appointment' | 'refill' | 'note' | 'escalation';
   title: string;
   description: string;
-  severity?: 'normal' | 'warning' | 'urgent';
+  severity?: 'normal' | 'warning' | 'urgent' | 'high' | 'medium';
 }
 
 export interface NotificationLog {
