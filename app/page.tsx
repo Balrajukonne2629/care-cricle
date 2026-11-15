@@ -9,7 +9,6 @@ import VoiceAssistantModal from '@/components/VoiceAssistantModal';
 import EmailInspectorModal from '@/components/EmailInspectorModal';
 import EmergencyModal from '@/components/EmergencyModal';
 import DoctorReportModal from '@/components/DoctorReportModal';
-import DemoControlsBanner from '@/components/DemoControlsBanner';
 
 import {
   ROLE_PINS,
@@ -353,14 +352,6 @@ export default function CareCircleApp() {
 
       {/* Main Responsive Body */}
       <main className="py-6 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Hackathon Evaluator Simulation Showcase Bar */}
-        <DemoControlsBanner
-          onTriggerSimulatedEscalation={handleSimulateMissedDose}
-          onTriggerLowRefill={handleSimulateLowRefill}
-          onOpenEmailInspector={() => setIsEmailInspectorOpen(true)}
-          onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
-        />
-
         {currentRole.role === 'elder' ? (
           <ElderView
             elder={elder}
